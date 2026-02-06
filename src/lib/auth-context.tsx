@@ -5,11 +5,22 @@ import Cookies from 'js-cookie';
 import api from './api';
 import type { User } from '@/types';
 
+interface RegisterData {
+  firstName: string;
+  lastName: string;
+  gender: string;
+  birthDate: string;
+  email: string;
+  whatsappCode: string;
+  whatsappNumber: string;
+  password: string;
+}
+
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string) => Promise<void>;
+  register: (data: RegisterData) => Promise<void>;
   logout: () => void;
 }
 
@@ -46,8 +57,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(data.user);
   };
 
-  const register = async (name: string, email: string, password: string) => {
-    const { data } = await api.post('/auth/register', { name, email, password });
+  const register = async (registerData: RegisterData) => {
+    const { data } = await api.post('/auth/register', registerData);
     Cookies.set('token', data.accessToken, { expires: 1 });
     setUser(data.user);
   };

@@ -1,7 +1,12 @@
 export interface User {
   id: string;
-  name: string;
+  firstName: string;
+  lastName: string;
+  gender?: string;
+  birthDate?: string;
   email: string;
+  whatsappCode?: string;
+  whatsappNumber?: string;
   createdAt?: string;
 }
 

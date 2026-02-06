@@ -39,7 +39,9 @@ export default function Header() {
     >
       <Dropdown menu={{ items: menuItems }} placement="bottomRight">
         <Button type="text" icon={<UserOutlined />}>
-          <Text style={{ marginLeft: 8 }}>{user?.name}</Text>
+          <Text style={{ marginLeft: 8 }}>
+            {user?.firstName} {user?.lastName}
+          </Text>
         </Button>
       </Dropdown>
     </AntHeader>
