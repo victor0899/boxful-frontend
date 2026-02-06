@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Row, Col, Spin } from 'antd';
+import Image from 'next/image';
 import { useAuth } from '@/lib/auth-context';
 import { colors } from '@/lib/theme';
 
@@ -44,7 +45,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         <div style={{ width: '100%' }}>{children}</div>
       </Col>
 
-      {/* Right side - Image placeholder */}
+      {/* Right side - Hero Image */}
       <Col
         xs={0}
         lg={12}
@@ -53,11 +54,20 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
+          position: 'relative',
+          overflow: 'hidden',
         }}
       >
-        <div style={{ textAlign: 'center', color: colors.gray[300] }}>
-          <p style={{ fontSize: 16 }}>Imagen del diseño</p>
-        </div>
+        <Image
+          src="/images/hero.webp"
+          alt="Boxful"
+          fill
+          style={{
+            objectFit: 'cover',
+            objectPosition: 'center',
+          }}
+          priority
+        />
       </Col>
     </Row>
   );
