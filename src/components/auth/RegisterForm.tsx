@@ -1,21 +1,79 @@
 'use client';
 
 import { useState } from 'react';
-import { Form, Input, Button, message, Typography, Row, Col, Select, DatePicker, Space } from 'antd';
+import { Form, Input, Button, Typography, Row, Col, Select, DatePicker, Space, App, Modal } from 'antd';
+import { ExclamationCircleOutlined } from '@ant-design/icons';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { colors } from '@/lib/theme';
+import api from '@/lib/api';
 import type { AxiosError } from 'axios';
 
 const { Title, Text } = Typography;
 
 export default function RegisterForm() {
   const [loading, setLoading] = useState(false);
+  const [verificationModalOpen, setVerificationModalOpen] = useState(false);
+  const [verificationCode, setVerificationCode] = useState('');
+  const [pendingFormData, setPendingFormData] = useState<{
+    firstName: string;
+    lastName: string;
+    gender: string;
+    birthDate: string;
+    email: string;
+    whatsappCode: string;
+    whatsappNumber: string;
+    password: string;
+  } | null>(null);
   const { register } = useAuth();
   const router = useRouter();
+  const { modal, message } = App.useApp();
 
-  const onFinish = async (values: {
+  const sendVerificationCode = async (email: string) => {
+    setLoading(true);
+    try {
+      await api.post('/verification/send-code', { email });
+      message.success('Código enviado a tu email');
+      setVerificationModalOpen(true);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message?: string }>;
+      message.error(axiosError.response?.data?.message || 'Error al enviar código');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const verifyCodeAndRegister = async () => {
+    if (!pendingFormData) return;
+
+    if (verificationCode.length !== 6) {
+      message.error('El código debe tener 6 dígitos');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Verificar código
+      await api.post('/verification/verify-code', {
+        email: pendingFormData.email,
+        code: verificationCode,
+      });
+
+      // Si el código es válido, proceder con el registro
+      await register(pendingFormData);
+      message.success('Registro exitoso');
+      setVerificationModalOpen(false);
+      router.push('/orders');
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message?: string }>;
+      message.error(axiosError.response?.data?.message || 'Código inválido o expirado');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onFinish = (values: {
     firstName: string;
     lastName: string;
     gender: string;
@@ -26,26 +84,56 @@ export default function RegisterForm() {
     password: string;
     confirmPassword: string;
   }) => {
-    setLoading(true);
-    try {
-      await register({
-        firstName: values.firstName,
-        lastName: values.lastName,
-        gender: values.gender,
-        birthDate: values.birthDate ? (values.birthDate as { format: (fmt: string) => string }).format('YYYY-MM-DD') : '',
-        email: values.email,
-        whatsappCode: values.whatsappCode,
-        whatsappNumber: values.whatsappNumber,
-        password: values.password,
-      });
-      message.success('Registro exitoso');
-      router.push('/orders');
-    } catch (error) {
-      const axiosError = error as AxiosError<{ message?: string }>;
-      message.error(axiosError.response?.data?.message || 'Error al registrarse');
-    } finally {
-      setLoading(false);
-    }
+    const phoneNumber = `+${values.whatsappCode} ${values.whatsappNumber}`;
+
+    modal.confirm({
+      title: (
+        <span style={{ color: colors.gray[500], fontSize: 24, fontWeight: 600 }}>
+          Confirmar número de teléfono
+        </span>
+      ),
+      icon: (
+        <ExclamationCircleOutlined
+          style={{
+            fontSize: 64,
+            color: '#FFA940',
+            backgroundColor: '#FFF7E6',
+            borderRadius: '50%',
+            padding: 24,
+          }}
+        />
+      ),
+      content: (
+        <Text style={{ fontSize: 16, color: colors.gray[500] }}>
+          Está seguro de que desea continuar con el número <strong>{phoneNumber}</strong>?
+        </Text>
+      ),
+      okText: 'Aceptar',
+      cancelText: 'Cancelar',
+      centered: true,
+      onOk: () => {
+        // Guardar datos del formulario
+        const formData = {
+          firstName: values.firstName,
+          lastName: values.lastName,
+          gender: values.gender,
+          birthDate: values.birthDate ? (values.birthDate as { format: (fmt: string) => string }).format('YYYY-MM-DD') : '',
+          email: values.email,
+          whatsappCode: values.whatsappCode,
+          whatsappNumber: values.whatsappNumber,
+          password: values.password,
+        };
+        setPendingFormData(formData);
+        // Enviar código de verificación
+        sendVerificationCode(values.email);
+      },
+      okButtonProps: {
+        style: { height: 48, fontSize: 16, minWidth: 120 },
+      },
+      cancelButtonProps: {
+        style: { height: 48, fontSize: 16, minWidth: 120 },
+      },
+    });
   };
 
   return (
@@ -189,6 +277,61 @@ export default function RegisterForm() {
           Inicia sesión
         </Link>
       </Text>
+
+      {/* Modal de verificación de código */}
+      <Modal
+        open={verificationModalOpen}
+        onCancel={() => {
+          setVerificationModalOpen(false);
+          setVerificationCode('');
+        }}
+        footer={null}
+        centered
+        width={480}
+      >
+        <div style={{ textAlign: 'center', padding: '24px 0' }}>
+          <Title level={3} style={{ color: colors.gray[500], marginBottom: 16 }}>
+            Verificar tu email
+          </Title>
+          <Text style={{ display: 'block', marginBottom: 32, color: colors.gray[500] }}>
+            Ingresa el código de 6 dígitos que enviamos a <strong>{pendingFormData?.email}</strong>
+          </Text>
+
+          <Input
+            placeholder="000000"
+            maxLength={6}
+            value={verificationCode}
+            onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, ''))}
+            style={{
+              fontSize: 24,
+              textAlign: 'center',
+              letterSpacing: 8,
+              fontWeight: 600,
+              height: 56,
+              marginBottom: 24,
+            }}
+          />
+
+          <Button
+            type="primary"
+            onClick={verifyCodeAndRegister}
+            loading={loading}
+            block
+            size="large"
+            disabled={verificationCode.length !== 6}
+          >
+            Verificar y registrar
+          </Button>
+
+          <Button
+            type="link"
+            onClick={() => pendingFormData && sendVerificationCode(pendingFormData.email)}
+            style={{ marginTop: 16, color: colors.blue[500] }}
+          >
+            Reenviar código
+          </Button>
+        </div>
+      </Modal>
     </>
   );
 }
