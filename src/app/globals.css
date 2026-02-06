@@ -1,3 +1,12 @@
+/* Mona Sans Font */
+@font-face {
+  font-family: 'Mona Sans';
+  src: url('https://github.com/github/mona-sans/blob/main/fonts/variable/Mona-Sans.woff2?raw=true') format('woff2');
+  font-weight: 200 900;
+  font-stretch: 75% 125%;
+  font-display: swap;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -7,5 +16,5 @@
 html,
 body {
   height: 100%;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: 'Mona Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
