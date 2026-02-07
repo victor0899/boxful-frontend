@@ -5,102 +5,107 @@ import {
   Form,
   Input,
   Button,
-  Steps,
   Card,
-  InputNumber,
-  Switch,
-  Space,
   message,
   Typography,
   Row,
   Col,
-  Divider,
+  DatePicker,
+  Select,
+  Space,
+  InputNumber,
 } from 'antd';
-import {
-  UserOutlined,
-  InboxOutlined,
-  PlusOutlined,
-  DeleteOutlined,
-  ArrowLeftOutlined,
-  ArrowRightOutlined,
-  SendOutlined,
-} from '@ant-design/icons';
+import { ArrowRightOutlined, ArrowLeftOutlined, PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 import { useOrders } from '@/hooks/useOrders';
+import { colors } from '@/lib/theme';
 import type { AxiosError } from 'axios';
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
+const { TextArea } = Input;
 
-interface PackageFormValues {
-  description: string;
-  weight: number;
+interface Package {
+  length: number;
   height: number;
   width: number;
-  length: number;
-  quantity: number;
+  weight: number;
+  description: string;
 }
 
 export default function OrderForm() {
   const [form] = Form.useForm();
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [packages, setPackages] = useState<Package[]>([]);
+  const [currentPackage, setCurrentPackage] = useState<Partial<Package>>({});
+  const [step1Data, setStep1Data] = useState<Record<string, unknown>>({});
   const { createOrder } = useOrders();
   const router = useRouter();
 
-  const steps = [
-    { title: 'Datos del Cliente', icon: <UserOutlined /> },
-    { title: 'Paquetes', icon: <InboxOutlined /> },
-  ];
-
-  const validateCurrentStep = async () => {
+  const handleNext = async () => {
     try {
-      if (currentStep === 0) {
-        await form.validateFields([
-          'clientName',
-          'clientPhone',
-          'clientAddress',
-          'clientDepartment',
-          'clientMunicipality',
-        ]);
-      } else {
-        await form.validateFields();
-      }
-      return true;
-    } catch {
-      return false;
+      const values = await form.validateFields();
+      // Guardar los valores del paso 1
+      setStep1Data(values);
+      setCurrentStep(1);
+    } catch (error) {
+      message.error('Por favor completa todos los campos requeridos');
     }
   };
 
-  const handleNext = async () => {
-    const isValid = await validateCurrentStep();
-    if (isValid) {
-      setCurrentStep(currentStep + 1);
+  const handleAddPackage = () => {
+    if (
+      !currentPackage.length ||
+      !currentPackage.height ||
+      !currentPackage.width ||
+      !currentPackage.weight ||
+      !currentPackage.description
+    ) {
+      message.error('Por favor completa todos los campos del producto');
+      return;
     }
+
+    setPackages([...packages, currentPackage as Package]);
+    setCurrentPackage({});
+  };
+
+  const handleRemovePackage = (index: number) => {
+    setPackages(packages.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async () => {
+    if (packages.length === 0) {
+      message.error('Debes agregar al menos un producto');
+      return;
+    }
+
     try {
-      const values = await form.validateFields();
       setLoading(true);
 
       const orderData = {
-        clientName: values.clientName,
-        clientEmail: values.clientEmail || undefined,
-        clientPhone: values.clientPhone,
-        clientAddress: values.clientAddress,
-        clientDepartment: values.clientDepartment,
-        clientMunicipality: values.clientMunicipality,
-        clientReference: values.clientReference || undefined,
-        packages: values.packages.map((pkg: PackageFormValues) => ({
+        // Nuevos campos requeridos por el backend (del paso 1)
+        pickupAddress: step1Data.pickupAddress as string,
+        scheduledDate: step1Data.scheduledDate ? (step1Data.scheduledDate as { toISOString: () => string }).toISOString() : undefined,
+        firstName: step1Data.firstName as string,
+        lastName: step1Data.lastName as string,
+        phoneCode: step1Data.phoneCode as string,
+        phoneNumber: step1Data.phoneNumber as string,
+        instructions: step1Data.instructions as string | undefined,
+        // Campos existentes (del paso 1)
+        clientEmail: step1Data.email as string | undefined,
+        clientAddress: step1Data.destinationAddress as string,
+        clientDepartment: step1Data.department as string,
+        clientMunicipality: step1Data.municipality as string,
+        clientReference: step1Data.referencePoint as string | undefined,
+        // Paquetes (del paso 2)
+        packages: packages.map((pkg) => ({
           description: pkg.description,
-          weight: Number(pkg.weight),
-          height: Number(pkg.height),
-          width: Number(pkg.width),
-          length: Number(pkg.length),
-          quantity: Number(pkg.quantity),
+          weight: pkg.weight,
+          height: pkg.height,
+          width: pkg.width,
+          length: pkg.length,
+          quantity: 1,
         })),
-        isCOD: values.isCOD || false,
-        codExpectedAmount: values.isCOD ? Number(values.codExpectedAmount) : undefined,
       };
 
       await createOrder(orderData);
@@ -121,241 +126,390 @@ export default function OrderForm() {
 
   return (
     <>
-      <Title level={3} style={{ marginBottom: 24 }}>
-        Nueva Orden de Envío
+      {/* Hero Section */}
+      <Title level={1} style={{ fontSize: 42, fontWeight: 700, color: colors.gray[500], marginBottom: 16 }}>
+        Crea una orden
       </Title>
-
-      <Steps current={currentStep} items={steps} style={{ marginBottom: 32 }} />
-
-      <Form
-        form={form}
-        layout="vertical"
-        initialValues={{
-          packages: [{ description: '', weight: '', height: '', width: '', length: '', quantity: 1 }],
-          isCOD: false,
+      <Text
+        style={{
+          fontSize: 18,
+          color: colors.gray[500],
+          display: 'block',
+          marginBottom: 32,
+          lineHeight: 1.6,
         }}
       >
-        {/* Step 1: Client Data */}
-        <div style={{ display: currentStep === 0 ? 'block' : 'none' }}>
-          <Card title="Información del destinatario">
-            <Row gutter={16}>
-              <Col xs={24} md={12}>
-                <Form.Item
-                  name="clientName"
-                  label="Nombre completo"
-                  rules={[{ required: true, message: 'Campo requerido' }]}
-                >
-                  <Input placeholder="Nombre del destinatario" />
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={12}>
-                <Form.Item
-                  name="clientEmail"
-                  label="Email"
-                  rules={[{ type: 'email', message: 'Email no válido' }]}
-                >
-                  <Input placeholder="email@ejemplo.com" />
-                </Form.Item>
-              </Col>
-            </Row>
+        Dale una ventaja competitiva a tu negocio con entregas <strong>el mismo día</strong> (Área
+        Metropolitana) y <strong>el día siguiente</strong> a nivel nacional.
+      </Text>
 
-            <Row gutter={16}>
-              <Col xs={24} md={12}>
-                <Form.Item
-                  name="clientPhone"
-                  label="Teléfono"
-                  rules={[{ required: true, message: 'Campo requerido' }]}
-                >
-                  <Input placeholder="+503 7890-1234" />
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={12}>
-                <Form.Item
-                  name="clientDepartment"
-                  label="Departamento"
-                  rules={[{ required: true, message: 'Campo requerido' }]}
-                >
-                  <Input placeholder="San Salvador" />
-                </Form.Item>
-              </Col>
-            </Row>
+      {/* Step 1: Complete data */}
+      {currentStep === 0 && (
+        <Card>
+          <Title level={4} style={{ marginBottom: 24, color: colors.gray[500], fontWeight: 600 }}>
+            Completa los datos
+          </Title>
 
-            <Row gutter={16}>
-              <Col xs={24} md={12}>
-                <Form.Item
-                  name="clientMunicipality"
-                  label="Municipio"
-                  rules={[{ required: true, message: 'Campo requerido' }]}
-                >
-                  <Input placeholder="San Salvador" />
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={12}>
-                <Form.Item
-                  name="clientAddress"
-                  label="Dirección"
-                  rules={[{ required: true, message: 'Campo requerido' }]}
-                >
-                  <Input placeholder="Col. Escalón, Calle #123" />
-                </Form.Item>
-              </Col>
-            </Row>
+          <Form form={form} layout="vertical" initialValues={{ phoneCode: '503' }}>
+          {/* Row 1: Dirección de recolección + Fecha programada */}
+          <Row gutter={16}>
+            <Col xs={24} md={16}>
+              <Form.Item
+                name="pickupAddress"
+                label={<span style={{ color: colors.gray[500], fontWeight: 500 }}>Dirección de recolección</span>}
+                rules={[{ required: true, message: 'Campo requerido' }]}
+              >
+                <Input placeholder="Colonia Las Magnolias, calle militar 1, San Salvador" />
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={8}>
+              <Form.Item
+                name="scheduledDate"
+                label={<span style={{ color: colors.gray[500], fontWeight: 500 }}>Fecha programada</span>}
+                rules={[{ required: true, message: 'Campo requerido' }]}
+              >
+                <DatePicker placeholder="03/07/2025" style={{ width: '100%' }} format="DD/MM/YYYY" />
+              </Form.Item>
+            </Col>
+          </Row>
 
-            <Form.Item name="clientReference" label="Referencia">
-              <Input placeholder="Frente al parque central" />
-            </Form.Item>
-          </Card>
-        </div>
+          {/* Row 2: Nombres + Apellidos + Correo */}
+          <Row gutter={16}>
+            <Col xs={24} md={8}>
+              <Form.Item
+                name="firstName"
+                label={<span style={{ color: colors.gray[500], fontWeight: 500 }}>Nombres</span>}
+                rules={[{ required: true, message: 'Campo requerido' }]}
+              >
+                <Input placeholder="Gabriela Reneé" />
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={8}>
+              <Form.Item
+                name="lastName"
+                label={<span style={{ color: colors.gray[500], fontWeight: 500 }}>Apellidos</span>}
+                rules={[{ required: true, message: 'Campo requerido' }]}
+              >
+                <Input placeholder="Días López" />
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={8}>
+              <Form.Item
+                name="email"
+                label={<span style={{ color: colors.gray[500], fontWeight: 500 }}>Correo electrónico</span>}
+                rules={[
+                  { required: true, message: 'Campo requerido' },
+                  { type: 'email', message: 'Email no válido' },
+                ]}
+              >
+                <Input placeholder="gabbydiaz@gmail.com" />
+              </Form.Item>
+            </Col>
+          </Row>
 
-        {/* Step 2: Packages */}
-        <div style={{ display: currentStep === 1 ? 'block' : 'none' }}>
-          <Card title="Paquetes">
-            <Form.List name="packages">
-              {(fields, { add, remove }) => (
-                <>
-                  {fields.map(({ key, name, ...restField }) => (
-                    <Card
-                      key={key}
-                      size="small"
-                      style={{ marginBottom: 16 }}
-                      title={`Paquete ${name + 1}`}
-                      extra={
-                        fields.length > 1 && (
-                          <Button
-                            type="text"
-                            danger
-                            icon={<DeleteOutlined />}
-                            onClick={() => remove(name)}
-                          >
-                            Eliminar
-                          </Button>
-                        )
-                      }
-                    >
-                      <Row gutter={16}>
-                        <Col xs={24} md={12}>
-                          <Form.Item
-                            {...restField}
-                            name={[name, 'description']}
-                            label="Descripción"
-                            rules={[{ required: true, message: 'Requerido' }]}
-                          >
-                            <Input placeholder="Descripción del paquete" />
-                          </Form.Item>
-                        </Col>
-                        <Col xs={24} md={6}>
-                          <Form.Item
-                            {...restField}
-                            name={[name, 'weight']}
-                            label="Peso (kg)"
-                            rules={[{ required: true, message: 'Requerido' }]}
-                          >
-                            <InputNumber min={0.1} step={0.1} style={{ width: '100%' }} placeholder="0.0" />
-                          </Form.Item>
-                        </Col>
-                        <Col xs={24} md={6}>
-                          <Form.Item
-                            {...restField}
-                            name={[name, 'quantity']}
-                            label="Cantidad"
-                            rules={[{ required: true, message: 'Requerido' }]}
-                          >
-                            <InputNumber min={1} style={{ width: '100%' }} placeholder="1" />
-                          </Form.Item>
-                        </Col>
-                      </Row>
-                      <Row gutter={16}>
-                        <Col xs={24} md={8}>
-                          <Form.Item
-                            {...restField}
-                            name={[name, 'height']}
-                            label="Alto (cm)"
-                            rules={[{ required: true, message: 'Requerido' }]}
-                          >
-                            <InputNumber min={0.1} step={0.1} style={{ width: '100%' }} placeholder="0.0" />
-                          </Form.Item>
-                        </Col>
-                        <Col xs={24} md={8}>
-                          <Form.Item
-                            {...restField}
-                            name={[name, 'width']}
-                            label="Ancho (cm)"
-                            rules={[{ required: true, message: 'Requerido' }]}
-                          >
-                            <InputNumber min={0.1} step={0.1} style={{ width: '100%' }} placeholder="0.0" />
-                          </Form.Item>
-                        </Col>
-                        <Col xs={24} md={8}>
-                          <Form.Item
-                            {...restField}
-                            name={[name, 'length']}
-                            label="Largo (cm)"
-                            rules={[{ required: true, message: 'Requerido' }]}
-                          >
-                            <InputNumber min={0.1} step={0.1} style={{ width: '100%' }} placeholder="0.0" />
-                          </Form.Item>
-                        </Col>
-                      </Row>
-                    </Card>
-                  ))}
-                  <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
-                    Agregar paquete
-                  </Button>
-                </>
-              )}
-            </Form.List>
-          </Card>
-
-          <Divider />
-
-          <Card title="Contra entrega (COD)">
-            <Form.Item name="isCOD" label="Pago contra entrega" valuePropName="checked">
-              <Switch />
-            </Form.Item>
-            <Form.Item noStyle shouldUpdate={(prev, cur) => prev.isCOD !== cur.isCOD}>
-              {({ getFieldValue }) =>
-                getFieldValue('isCOD') && (
-                  <Form.Item
-                    name="codExpectedAmount"
-                    label="Monto a recolectar ($)"
-                    rules={[{ required: true, message: 'Ingresa el monto esperado' }]}
-                  >
-                    <InputNumber min={0} step={0.01} style={{ width: '100%' }} placeholder="0.00" />
+          {/* Row 3: Teléfono + Dirección del destinatario */}
+          <Row gutter={16}>
+            <Col xs={24} md={8}>
+              <Form.Item
+                label={<span style={{ color: colors.gray[500], fontWeight: 500 }}>Teléfono</span>}
+              >
+                <Space.Compact style={{ width: '100%' }}>
+                  <Form.Item name="phoneCode" noStyle>
+                    <Select style={{ width: 100 }}>
+                      <Select.Option value="503">503</Select.Option>
+                      <Select.Option value="504">504</Select.Option>
+                      <Select.Option value="505">505</Select.Option>
+                    </Select>
                   </Form.Item>
-                )
-              }
-            </Form.Item>
-          </Card>
-        </div>
+                  <Form.Item
+                    name="phoneNumber"
+                    noStyle
+                    rules={[{ required: true, message: 'Campo requerido' }]}
+                  >
+                    <Input placeholder="7777 7777" style={{ width: '100%' }} />
+                  </Form.Item>
+                </Space.Compact>
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={16}>
+              <Form.Item
+                name="destinationAddress"
+                label={<span style={{ color: colors.gray[500], fontWeight: 500 }}>Dirección del destinatario</span>}
+                rules={[{ required: true, message: 'Campo requerido' }]}
+              >
+                <Input placeholder="Final 49 Av. Sur y Bulevar Los Próceres, Smartcenter, Bodega #8, San Salvador" />
+              </Form.Item>
+            </Col>
+          </Row>
 
-        {/* Navigation buttons */}
-        <div style={{ marginTop: 24, display: 'flex', justifyContent: 'space-between' }}>
-          <Space>
-            {currentStep > 0 && (
-              <Button icon={<ArrowLeftOutlined />} onClick={() => setCurrentStep(currentStep - 1)}>
-                Anterior
-              </Button>
-            )}
-          </Space>
-          <Space>
-            {currentStep < steps.length - 1 && (
-              <Button type="primary" onClick={handleNext}>
-                Siguiente <ArrowRightOutlined />
-              </Button>
-            )}
-            {currentStep === steps.length - 1 && (
+          {/* Row 4: Departamento + Municipio + Punto de referencia */}
+          <Row gutter={16}>
+            <Col xs={24} md={8}>
+              <Form.Item
+                name="department"
+                label={<span style={{ color: colors.gray[500], fontWeight: 500 }}>Departamento</span>}
+                rules={[{ required: true, message: 'Campo requerido' }]}
+              >
+                <Input placeholder="San Salvador" />
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={8}>
+              <Form.Item
+                name="municipality"
+                label={<span style={{ color: colors.gray[500], fontWeight: 500 }}>Municipio</span>}
+                rules={[{ required: true, message: 'Campo requerido' }]}
+              >
+                <Input placeholder="San Salvador" />
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={8}>
+              <Form.Item
+                name="referencePoint"
+                label={<span style={{ color: colors.gray[500], fontWeight: 500 }}>Punto de referencia</span>}
+              >
+                <Input placeholder="Cerca de redondel Arbol de la Paz" />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          {/* Row 5: Indicaciones */}
+          <Row>
+            <Col xs={24}>
+              <Form.Item
+                name="instructions"
+                label={<span style={{ color: colors.gray[500], fontWeight: 500 }}>Indicaciones</span>}
+              >
+                <TextArea rows={3} placeholder="Llamar antes de entregar" />
+              </Form.Item>
+            </Col>
+          </Row>
+
+            {/* Next Button */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 24 }}>
               <Button
                 type="primary"
-                icon={<SendOutlined />}
-                loading={loading}
-                onClick={handleSubmit}
+                size="large"
+                onClick={handleNext}
+                style={{ minWidth: 160, height: 48, fontSize: 16 }}
+                icon={<ArrowRightOutlined />}
+                iconPosition="end"
               >
-                Crear Orden
+                Siguiente
               </Button>
-            )}
-          </Space>
-        </div>
-      </Form>
+            </div>
+          </Form>
+        </Card>
+      )}
+
+      {/* Step 2: Add products */}
+      {currentStep === 1 && (
+        <Card>
+          <Title level={4} style={{ marginBottom: 24, color: colors.gray[500], fontWeight: 600 }}>
+            Agrega tus productos
+          </Title>
+
+          {/* Add product form */}
+          <div
+            style={{
+              backgroundColor: '#f5f5f5',
+              padding: 24,
+              borderRadius: 8,
+              marginBottom: 24,
+            }}
+          >
+            <Row gutter={16} align="middle">
+              <Col xs={24} sm={3}>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    fontSize: 40,
+                  }}
+                >
+                  📦
+                </div>
+              </Col>
+              <Col xs={12} sm={3}>
+                <div>
+                  <Text style={{ fontSize: 12, color: colors.gray[500], fontWeight: 500 }}>Largo</Text>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <InputNumber
+                      min={1}
+                      placeholder="15"
+                      value={currentPackage.length}
+                      onChange={(value) => setCurrentPackage({ ...currentPackage, length: value || 0 })}
+                      style={{ width: 60 }}
+                    />
+                    <Text style={{ fontSize: 12, color: colors.gray[300] }}>cm</Text>
+                  </div>
+                </div>
+              </Col>
+              <Col xs={12} sm={3}>
+                <div>
+                  <Text style={{ fontSize: 12, color: colors.gray[500], fontWeight: 500 }}>Alto</Text>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <InputNumber
+                      min={1}
+                      placeholder="15"
+                      value={currentPackage.height}
+                      onChange={(value) => setCurrentPackage({ ...currentPackage, height: value || 0 })}
+                      style={{ width: 60 }}
+                    />
+                    <Text style={{ fontSize: 12, color: colors.gray[300] }}>cm</Text>
+                  </div>
+                </div>
+              </Col>
+              <Col xs={12} sm={3}>
+                <div>
+                  <Text style={{ fontSize: 12, color: colors.gray[500], fontWeight: 500 }}>Ancho</Text>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <InputNumber
+                      min={1}
+                      placeholder="15"
+                      value={currentPackage.width}
+                      onChange={(value) => setCurrentPackage({ ...currentPackage, width: value || 0 })}
+                      style={{ width: 60 }}
+                    />
+                    <Text style={{ fontSize: 12, color: colors.gray[300] }}>cm</Text>
+                  </div>
+                </div>
+              </Col>
+              <Col xs={12} sm={4}>
+                <div>
+                  <Text style={{ fontSize: 12, color: colors.gray[500], fontWeight: 500 }}>
+                    Peso en libras
+                  </Text>
+                  <Input
+                    placeholder="3 libras"
+                    value={currentPackage.weight}
+                    onChange={(e) =>
+                      setCurrentPackage({ ...currentPackage, weight: parseFloat(e.target.value) || 0 })
+                    }
+                  />
+                </div>
+              </Col>
+              <Col xs={24} sm={6}>
+                <div>
+                  <Text style={{ fontSize: 12, color: colors.gray[500], fontWeight: 500 }}>Contenido</Text>
+                  <Input
+                    placeholder="iPhone 14 pro Max"
+                    value={currentPackage.description}
+                    onChange={(e) => setCurrentPackage({ ...currentPackage, description: e.target.value })}
+                  />
+                </div>
+              </Col>
+              <Col xs={24} sm={2}>
+                <Button
+                  type="default"
+                  icon={<PlusOutlined />}
+                  onClick={handleAddPackage}
+                  style={{ width: '100%', marginTop: 16 }}
+                >
+                  Agregar
+                </Button>
+              </Col>
+            </Row>
+          </div>
+
+          {/* Added products list */}
+          {packages.map((pkg, index) => (
+            <div
+              key={index}
+              style={{
+                border: `2px solid #52c41a`,
+                borderRadius: 8,
+                padding: 16,
+                marginBottom: 16,
+                backgroundColor: '#f6ffed',
+              }}
+            >
+              <Row gutter={16} align="middle">
+                <Col xs={6} sm={3}>
+                  <Text style={{ fontSize: 12, color: colors.gray[500], fontWeight: 500 }}>
+                    Peso en libras
+                  </Text>
+                  <div>
+                    <Text style={{ fontSize: 14 }}>{pkg.weight} libras</Text>
+                  </div>
+                </Col>
+                <Col xs={12} sm={6}>
+                  <Text style={{ fontSize: 12, color: colors.gray[500], fontWeight: 500 }}>Contenido</Text>
+                  <div>
+                    <Text style={{ fontSize: 14 }}>{pkg.description}</Text>
+                  </div>
+                </Col>
+                <Col xs={6} sm={2}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      fontSize: 32,
+                    }}
+                  >
+                    📦
+                  </div>
+                </Col>
+                <Col xs={6} sm={2}>
+                  <Text style={{ fontSize: 12, color: colors.gray[500], fontWeight: 500 }}>Largo</Text>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <Text style={{ fontSize: 14 }}>{pkg.length}</Text>
+                    <Text style={{ fontSize: 12, color: colors.gray[300] }}>cm</Text>
+                  </div>
+                </Col>
+                <Col xs={6} sm={2}>
+                  <Text style={{ fontSize: 12, color: colors.gray[500], fontWeight: 500 }}>Alto</Text>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <Text style={{ fontSize: 14 }}>{pkg.height}</Text>
+                    <Text style={{ fontSize: 12, color: colors.gray[300] }}>cm</Text>
+                  </div>
+                </Col>
+                <Col xs={6} sm={2}>
+                  <Text style={{ fontSize: 12, color: colors.gray[500], fontWeight: 500 }}>Ancho</Text>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <Text style={{ fontSize: 14 }}>{pkg.width}</Text>
+                    <Text style={{ fontSize: 12, color: colors.gray[300] }}>cm</Text>
+                  </div>
+                </Col>
+                <Col xs={24} sm={2}>
+                  <Button
+                    danger
+                    icon={<DeleteOutlined />}
+                    onClick={() => handleRemovePackage(index)}
+                    style={{ width: '100%' }}
+                  >
+                    Eliminar
+                  </Button>
+                </Col>
+              </Row>
+            </div>
+          ))}
+
+          {/* Navigation buttons */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 32 }}>
+            <Button
+              size="large"
+              onClick={() => setCurrentStep(0)}
+              icon={<ArrowLeftOutlined />}
+              style={{ minWidth: 160, height: 48, fontSize: 16 }}
+            >
+              Regresar
+            </Button>
+            <Button
+              type="primary"
+              size="large"
+              loading={loading}
+              onClick={handleSubmit}
+              style={{ minWidth: 160, height: 48, fontSize: 16 }}
+              icon={<ArrowRightOutlined />}
+              iconPosition="end"
+            >
+              Enviar
+            </Button>
+          </div>
+        </Card>
+      )}
     </>
   );
 }

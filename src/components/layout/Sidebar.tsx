@@ -15,14 +15,14 @@ export default function Sidebar() {
 
   const menuItems = [
     {
-      key: '/orders',
-      icon: <FileTextOutlined />,
-      label: 'Mis Órdenes',
-    },
-    {
       key: '/orders/create',
       icon: <PlusCircleOutlined />,
-      label: 'Nueva Orden',
+      label: 'Crear orden',
+    },
+    {
+      key: '/orders',
+      icon: <FileTextOutlined />,
+      label: 'Historial',
     },
   ];
 

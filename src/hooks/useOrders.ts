@@ -15,9 +15,16 @@ interface OrdersQuery {
 }
 
 interface CreateOrderData {
-  clientName: string;
+  // Nuevos campos requeridos
+  pickupAddress: string;
+  scheduledDate?: string;
+  firstName: string;
+  lastName: string;
+  phoneCode: string;
+  phoneNumber: string;
+  instructions?: string;
+  // Campos existentes
   clientEmail?: string;
-  clientPhone: string;
   clientAddress: string;
   clientDepartment: string;
   clientMunicipality: string;
