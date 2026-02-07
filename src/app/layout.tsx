@@ -7,6 +7,9 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'Boxful - Gestión de Envíos',
   description: 'Sistema de gestión de órdenes de envío',
+  icons: {
+    icon: '/images/box.svg',
+  },
 };
 
 export default function RootLayout({

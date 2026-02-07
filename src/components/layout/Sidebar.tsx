@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter } from 'next/navigation';
 import { Layout, Menu } from 'antd';
+import Image from 'next/image';
 import {
   FileTextOutlined,
   PlusCircleOutlined,
@@ -39,9 +40,16 @@ export default function Sidebar() {
           alignItems: 'center',
           justifyContent: 'center',
           borderBottom: '1px solid #f0f0f0',
+          padding: '0 16px',
         }}
       >
-        <h2 style={{ color: '#667eea', margin: 0, fontWeight: 700 }}>Boxful</h2>
+        <Image
+          src="/images/logo.svg"
+          alt="Boxful"
+          width={120}
+          height={40}
+          priority
+        />
       </div>
       <Menu
         mode="inline"
