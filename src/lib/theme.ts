@@ -39,5 +39,13 @@ export const theme = {
       controlHeight: 48,
       borderRadius: 8,
     },
+    Select: {
+      controlHeight: 48,
+      borderRadius: 8,
+    },
+    DatePicker: {
+      controlHeight: 48,
+      borderRadius: 8,
+    },
   },
 };

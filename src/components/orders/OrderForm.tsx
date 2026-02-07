@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Form,
   Input,
@@ -17,6 +17,7 @@ import {
 } from 'antd';
 import { ArrowRightOutlined, ArrowLeftOutlined, PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
+import { State, City } from 'country-state-city';
 import { useOrders } from '@/hooks/useOrders';
 import { colors } from '@/lib/theme';
 import type { AxiosError } from 'axios';
@@ -39,8 +40,26 @@ export default function OrderForm() {
   const [packages, setPackages] = useState<Package[]>([]);
   const [currentPackage, setCurrentPackage] = useState<Partial<Package>>({});
   const [step1Data, setStep1Data] = useState<Record<string, unknown>>({});
+  const [selectedDepartment, setSelectedDepartment] = useState<string | null>(null);
   const { createOrder } = useOrders();
   const router = useRouter();
+
+  // Obtener departamentos de El Salvador (código ISO: SV)
+  const departments = useMemo(() => {
+    return State.getStatesOfCountry('SV');
+  }, []);
+
+  // Obtener municipios del departamento seleccionado
+  const municipalities = useMemo(() => {
+    if (!selectedDepartment) return [];
+    return City.getCitiesOfState('SV', selectedDepartment);
+  }, [selectedDepartment]);
+
+  const handleDepartmentChange = (value: string) => {
+    setSelectedDepartment(value);
+    // Limpiar el campo de municipio cuando cambia el departamento
+    form.resetFields(['municipality']);
+  };
 
   const handleNext = async () => {
     try {
@@ -82,6 +101,11 @@ export default function OrderForm() {
     try {
       setLoading(true);
 
+      // Obtener el nombre del departamento del isoCode
+      const departmentName = departments.find(
+        (dept) => dept.isoCode === step1Data.department
+      )?.name || step1Data.department as string;
+
       const orderData = {
         // Nuevos campos requeridos por el backend (del paso 1)
         pickupAddress: step1Data.pickupAddress as string,
@@ -94,7 +118,7 @@ export default function OrderForm() {
         // Campos existentes (del paso 1)
         clientEmail: step1Data.email as string | undefined,
         clientAddress: step1Data.destinationAddress as string,
-        clientDepartment: step1Data.department as string,
+        clientDepartment: departmentName,
         clientMunicipality: step1Data.municipality as string,
         clientReference: step1Data.referencePoint as string | undefined,
         // Paquetes (del paso 2)
@@ -159,7 +183,7 @@ export default function OrderForm() {
                 label={<span style={{ color: colors.gray[500], fontWeight: 500 }}>Dirección de recolección</span>}
                 rules={[{ required: true, message: 'Campo requerido' }]}
               >
-                <Input placeholder="Colonia Las Magnolias, calle militar 1, San Salvador" />
+                <Input  />
               </Form.Item>
             </Col>
             <Col xs={24} md={8}>
@@ -168,7 +192,7 @@ export default function OrderForm() {
                 label={<span style={{ color: colors.gray[500], fontWeight: 500 }}>Fecha programada</span>}
                 rules={[{ required: true, message: 'Campo requerido' }]}
               >
-                <DatePicker placeholder="03/07/2025" style={{ width: '100%' }} format="DD/MM/YYYY" />
+                <DatePicker  style={{ width: '100%' }} format="DD/MM/YYYY" />
               </Form.Item>
             </Col>
           </Row>
@@ -181,7 +205,7 @@ export default function OrderForm() {
                 label={<span style={{ color: colors.gray[500], fontWeight: 500 }}>Nombres</span>}
                 rules={[{ required: true, message: 'Campo requerido' }]}
               >
-                <Input placeholder="Gabriela Reneé" />
+                <Input  />
               </Form.Item>
             </Col>
             <Col xs={24} md={8}>
@@ -190,7 +214,7 @@ export default function OrderForm() {
                 label={<span style={{ color: colors.gray[500], fontWeight: 500 }}>Apellidos</span>}
                 rules={[{ required: true, message: 'Campo requerido' }]}
               >
-                <Input placeholder="Días López" />
+                <Input  />
               </Form.Item>
             </Col>
             <Col xs={24} md={8}>
@@ -202,7 +226,7 @@ export default function OrderForm() {
                   { type: 'email', message: 'Email no válido' },
                 ]}
               >
-                <Input placeholder="gabbydiaz@gmail.com" />
+                <Input  />
               </Form.Item>
             </Col>
           </Row>
@@ -226,7 +250,7 @@ export default function OrderForm() {
                     noStyle
                     rules={[{ required: true, message: 'Campo requerido' }]}
                   >
-                    <Input placeholder="7777 7777" style={{ width: '100%' }} />
+                    <Input  style={{ width: '100%' }} />
                   </Form.Item>
                 </Space.Compact>
               </Form.Item>
@@ -237,7 +261,7 @@ export default function OrderForm() {
                 label={<span style={{ color: colors.gray[500], fontWeight: 500 }}>Dirección del destinatario</span>}
                 rules={[{ required: true, message: 'Campo requerido' }]}
               >
-                <Input placeholder="Final 49 Av. Sur y Bulevar Los Próceres, Smartcenter, Bodega #8, San Salvador" />
+                <Input  />
               </Form.Item>
             </Col>
           </Row>
@@ -250,7 +274,18 @@ export default function OrderForm() {
                 label={<span style={{ color: colors.gray[500], fontWeight: 500 }}>Departamento</span>}
                 rules={[{ required: true, message: 'Campo requerido' }]}
               >
-                <Input placeholder="San Salvador" />
+                <Select
+                  showSearch
+                  optionFilterProp="children"
+                  onChange={handleDepartmentChange}
+                  filterOption={(input, option) =>
+                    (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                  }
+                  options={departments.map((dept) => ({
+                    value: dept.isoCode,
+                    label: dept.name,
+                  }))}
+                />
               </Form.Item>
             </Col>
             <Col xs={24} md={8}>
@@ -259,7 +294,18 @@ export default function OrderForm() {
                 label={<span style={{ color: colors.gray[500], fontWeight: 500 }}>Municipio</span>}
                 rules={[{ required: true, message: 'Campo requerido' }]}
               >
-                <Input placeholder="San Salvador" />
+                <Select
+                  showSearch
+                  optionFilterProp="children"
+                  disabled={!selectedDepartment}
+                  filterOption={(input, option) =>
+                    (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                  }
+                  options={municipalities.map((city) => ({
+                    value: city.name,
+                    label: city.name,
+                  }))}
+                />
               </Form.Item>
             </Col>
             <Col xs={24} md={8}>
@@ -267,7 +313,7 @@ export default function OrderForm() {
                 name="referencePoint"
                 label={<span style={{ color: colors.gray[500], fontWeight: 500 }}>Punto de referencia</span>}
               >
-                <Input placeholder="Cerca de redondel Arbol de la Paz" />
+                <Input  />
               </Form.Item>
             </Col>
           </Row>
@@ -279,7 +325,7 @@ export default function OrderForm() {
                 name="instructions"
                 label={<span style={{ color: colors.gray[500], fontWeight: 500 }}>Indicaciones</span>}
               >
-                <TextArea rows={3} placeholder="Llamar antes de entregar" />
+                <TextArea rows={3}  />
               </Form.Item>
             </Col>
           </Row>
@@ -336,7 +382,7 @@ export default function OrderForm() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                     <InputNumber
                       min={1}
-                      placeholder="15"
+                      
                       value={currentPackage.length}
                       onChange={(value) => setCurrentPackage({ ...currentPackage, length: value || 0 })}
                       style={{ width: 60 }}
@@ -351,7 +397,7 @@ export default function OrderForm() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                     <InputNumber
                       min={1}
-                      placeholder="15"
+                      
                       value={currentPackage.height}
                       onChange={(value) => setCurrentPackage({ ...currentPackage, height: value || 0 })}
                       style={{ width: 60 }}
@@ -366,7 +412,7 @@ export default function OrderForm() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                     <InputNumber
                       min={1}
-                      placeholder="15"
+                      
                       value={currentPackage.width}
                       onChange={(value) => setCurrentPackage({ ...currentPackage, width: value || 0 })}
                       style={{ width: 60 }}
@@ -381,7 +427,7 @@ export default function OrderForm() {
                     Peso en libras
                   </Text>
                   <Input
-                    placeholder="3 libras"
+                    
                     value={currentPackage.weight}
                     onChange={(e) =>
                       setCurrentPackage({ ...currentPackage, weight: parseFloat(e.target.value) || 0 })
@@ -393,7 +439,7 @@ export default function OrderForm() {
                 <div>
                   <Text style={{ fontSize: 12, color: colors.gray[500], fontWeight: 500 }}>Contenido</Text>
                   <Input
-                    placeholder="iPhone 14 pro Max"
+                    
                     value={currentPackage.description}
                     onChange={(e) => setCurrentPackage({ ...currentPackage, description: e.target.value })}
                   />
