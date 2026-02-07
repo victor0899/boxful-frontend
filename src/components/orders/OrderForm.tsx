@@ -12,12 +12,13 @@ import {
   Col,
   DatePicker,
   Select,
-  Space,
   InputNumber,
 } from 'antd';
 import { ArrowRightOutlined, ArrowLeftOutlined, PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 import { State, City } from 'country-state-city';
+import PhoneInput from 'react-phone-input-2';
+import 'react-phone-input-2/lib/style.css';
 import { useOrders } from '@/hooks/useOrders';
 import { colors } from '@/lib/theme';
 import type { AxiosError } from 'axios';
@@ -41,6 +42,7 @@ export default function OrderForm() {
   const [currentPackage, setCurrentPackage] = useState<Partial<Package>>({});
   const [step1Data, setStep1Data] = useState<Record<string, unknown>>({});
   const [selectedDepartment, setSelectedDepartment] = useState<string | null>(null);
+  const [phoneDialCode, setPhoneDialCode] = useState<string>('503');
   const { createOrder } = useOrders();
   const router = useRouter();
 
@@ -106,14 +108,18 @@ export default function OrderForm() {
         (dept) => dept.isoCode === step1Data.department
       )?.name || step1Data.department as string;
 
+      // Extraer código de país y número del phone completo
+      const fullPhone = step1Data.phone as string;
+      const phoneNumber = fullPhone.slice(phoneDialCode.length); // Remover el dialCode del inicio
+
       const orderData = {
         // Nuevos campos requeridos por el backend (del paso 1)
         pickupAddress: step1Data.pickupAddress as string,
         scheduledDate: step1Data.scheduledDate ? (step1Data.scheduledDate as { toISOString: () => string }).toISOString() : undefined,
         firstName: step1Data.firstName as string,
         lastName: step1Data.lastName as string,
-        phoneCode: step1Data.phoneCode as string,
-        phoneNumber: step1Data.phoneNumber as string,
+        phoneCode: phoneDialCode,
+        phoneNumber: phoneNumber,
         instructions: step1Data.instructions as string | undefined,
         // Campos existentes (del paso 1)
         clientEmail: step1Data.email as string | undefined,
@@ -235,24 +241,30 @@ export default function OrderForm() {
           <Row gutter={16}>
             <Col xs={24} md={8}>
               <Form.Item
+                name="phone"
                 label={<span style={{ color: colors.gray[500], fontWeight: 500 }}>Teléfono</span>}
+                rules={[{ required: true, message: 'Campo requerido' }]}
               >
-                <Space.Compact style={{ width: '100%' }}>
-                  <Form.Item name="phoneCode" noStyle>
-                    <Select style={{ width: 100 }}>
-                      <Select.Option value="503">503</Select.Option>
-                      <Select.Option value="504">504</Select.Option>
-                      <Select.Option value="505">505</Select.Option>
-                    </Select>
-                  </Form.Item>
-                  <Form.Item
-                    name="phoneNumber"
-                    noStyle
-                    rules={[{ required: true, message: 'Campo requerido' }]}
-                  >
-                    <Input  style={{ width: '100%' }} />
-                  </Form.Item>
-                </Space.Compact>
+                <PhoneInput
+                  country={'sv'}
+                  preferredCountries={['sv', 'hn', 'ni', 'gt']}
+                  containerStyle={{ width: '100%' }}
+                  inputStyle={{
+                    width: '100%',
+                    height: '48px',
+                    fontSize: '14px',
+                    borderRadius: '8px',
+                  }}
+                  buttonStyle={{
+                    borderRadius: '8px 0 0 8px',
+                  }}
+                  onChange={(_value, country: { dialCode?: string }) => {
+                    // Guardar el dialCode cuando cambia el país
+                    if (country.dialCode) {
+                      setPhoneDialCode(country.dialCode);
+                    }
+                  }}
+                />
               </Form.Item>
             </Col>
             <Col xs={24} md={16}>
