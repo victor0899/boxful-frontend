@@ -16,6 +16,9 @@ export const colors = {
     300: '#b8b7b7',
     100: '#ededed',
   },
+
+  // Text colors
+  textDark: '#161734',
 };
 
 // Ant Design theme configuration

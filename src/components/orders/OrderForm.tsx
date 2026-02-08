@@ -19,6 +19,7 @@ import { useRouter } from 'next/navigation';
 import { State, City } from 'country-state-city';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
+import dayjs from 'dayjs';
 import { useOrders } from '@/hooks/useOrders';
 import { colors } from '@/lib/theme';
 import type { AxiosError } from 'axios';
@@ -187,6 +188,7 @@ export default function OrderForm() {
               <Form.Item
                 name="pickupAddress"
                 label={<span style={{ color: colors.gray[500], fontWeight: 500 }}>Dirección de recolección</span>}
+                required={false}
                 rules={[{ required: true, message: 'Campo requerido' }]}
               >
                 <Input  />
@@ -196,9 +198,14 @@ export default function OrderForm() {
               <Form.Item
                 name="scheduledDate"
                 label={<span style={{ color: colors.gray[500], fontWeight: 500 }}>Fecha programada</span>}
+                required={false}
                 rules={[{ required: true, message: 'Campo requerido' }]}
               >
-                <DatePicker  style={{ width: '100%' }} format="DD/MM/YYYY" />
+                <DatePicker
+                  style={{ width: '100%' }}
+                  format="DD/MM/YYYY"
+                  disabledDate={(current) => current && current < dayjs().startOf('day')}
+                />
               </Form.Item>
             </Col>
           </Row>
@@ -209,6 +216,7 @@ export default function OrderForm() {
               <Form.Item
                 name="firstName"
                 label={<span style={{ color: colors.gray[500], fontWeight: 500 }}>Nombres</span>}
+                required={false}
                 rules={[{ required: true, message: 'Campo requerido' }]}
               >
                 <Input  />
@@ -218,6 +226,7 @@ export default function OrderForm() {
               <Form.Item
                 name="lastName"
                 label={<span style={{ color: colors.gray[500], fontWeight: 500 }}>Apellidos</span>}
+                required={false}
                 rules={[{ required: true, message: 'Campo requerido' }]}
               >
                 <Input  />
@@ -227,6 +236,7 @@ export default function OrderForm() {
               <Form.Item
                 name="email"
                 label={<span style={{ color: colors.gray[500], fontWeight: 500 }}>Correo electrónico</span>}
+                required={false}
                 rules={[
                   { required: true, message: 'Campo requerido' },
                   { type: 'email', message: 'Email no válido' },
@@ -243,6 +253,7 @@ export default function OrderForm() {
               <Form.Item
                 name="phone"
                 label={<span style={{ color: colors.gray[500], fontWeight: 500 }}>Teléfono</span>}
+                required={false}
                 rules={[{ required: true, message: 'Campo requerido' }]}
               >
                 <PhoneInput
@@ -271,6 +282,7 @@ export default function OrderForm() {
               <Form.Item
                 name="destinationAddress"
                 label={<span style={{ color: colors.gray[500], fontWeight: 500 }}>Dirección del destinatario</span>}
+                required={false}
                 rules={[{ required: true, message: 'Campo requerido' }]}
               >
                 <Input  />
@@ -284,6 +296,7 @@ export default function OrderForm() {
               <Form.Item
                 name="department"
                 label={<span style={{ color: colors.gray[500], fontWeight: 500 }}>Departamento</span>}
+                required={false}
                 rules={[{ required: true, message: 'Campo requerido' }]}
               >
                 <Select
@@ -304,6 +317,7 @@ export default function OrderForm() {
               <Form.Item
                 name="municipality"
                 label={<span style={{ color: colors.gray[500], fontWeight: 500 }}>Municipio</span>}
+                required={false}
                 rules={[{ required: true, message: 'Campo requerido' }]}
               >
                 <Select
