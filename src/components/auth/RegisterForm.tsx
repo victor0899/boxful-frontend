@@ -6,6 +6,7 @@ import { ExclamationCircleOutlined, LeftOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
+import dayjs from 'dayjs';
 import { useAuth } from '@/lib/auth-context';
 import { colors } from '@/lib/theme';
 import api from '@/lib/api';
@@ -208,7 +209,11 @@ export default function RegisterForm() {
               required={false}
               rules={[{ required: true, message: 'Selecciona tu fecha de nacimiento' }]}
             >
-              <DatePicker placeholder="Seleccionar" style={{ width: '100%' }} />
+              <DatePicker
+                placeholder="Seleccionar"
+                style={{ width: '100%' }}
+                disabledDate={(current) => current && current > dayjs().endOf('day')}
+              />
             </Form.Item>
           </Col>
         </Row>
