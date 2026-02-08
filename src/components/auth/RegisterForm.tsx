@@ -1,10 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { Form, Input, Button, Typography, Row, Col, Select, DatePicker, Space, App, Modal } from 'antd';
-import { ExclamationCircleOutlined } from '@ant-design/icons';
-import Link from 'next/link';
+import { Form, Input, Button, Typography, Row, Col, Select, DatePicker, App, Modal } from 'antd';
+import { ExclamationCircleOutlined, LeftOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
+import PhoneInput from 'react-phone-input-2';
+import 'react-phone-input-2/lib/style.css';
 import { useAuth } from '@/lib/auth-context';
 import { colors } from '@/lib/theme';
 import api from '@/lib/api';
@@ -16,6 +17,7 @@ export default function RegisterForm() {
   const [loading, setLoading] = useState(false);
   const [verificationModalOpen, setVerificationModalOpen] = useState(false);
   const [verificationCode, setVerificationCode] = useState('');
+  const [whatsappDialCode, setWhatsappDialCode] = useState<string>('503');
   const [pendingFormData, setPendingFormData] = useState<{
     firstName: string;
     lastName: string;
@@ -79,12 +81,14 @@ export default function RegisterForm() {
     gender: string;
     birthDate: unknown;
     email: string;
-    whatsappCode: string;
-    whatsappNumber: string;
+    whatsapp: string;
     password: string;
     confirmPassword: string;
   }) => {
-    const phoneNumber = `+${values.whatsappCode} ${values.whatsappNumber}`;
+    // Extraer código de país y número del whatsapp completo
+    const fullWhatsapp = values.whatsapp;
+    const whatsappNumber = fullWhatsapp.slice(whatsappDialCode.length); // Remover el dialCode del inicio
+    const phoneNumber = `+${whatsappDialCode} ${whatsappNumber}`;
 
     modal.confirm({
       title: (
@@ -119,8 +123,8 @@ export default function RegisterForm() {
           gender: values.gender,
           birthDate: values.birthDate ? (values.birthDate as { format: (fmt: string) => string }).format('YYYY-MM-DD') : '',
           email: values.email,
-          whatsappCode: values.whatsappCode,
-          whatsappNumber: values.whatsappNumber,
+          whatsappCode: whatsappDialCode,
+          whatsappNumber: whatsappNumber,
           password: values.password,
         };
         setPendingFormData(formData);
@@ -138,9 +142,22 @@ export default function RegisterForm() {
 
   return (
     <>
-      <Title level={2} style={{ marginBottom: 8, color: colors.gray[500], fontWeight: 700 }}>
-        Cuéntanos de ti
-      </Title>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+        <LeftOutlined
+          onClick={() => router.push('/login')}
+          style={{
+            fontSize: 16,
+            color: colors.blue.dark,
+            cursor: 'pointer',
+            transition: 'color 0.2s',
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = colors.blue[500])}
+          onMouseLeave={(e) => (e.currentTarget.style.color = colors.blue.dark)}
+        />
+        <Title level={2} style={{ margin: 0, color: colors.blue.dark, fontWeight: 700 }}>
+          Cuéntanos de ti
+        </Title>
+      </div>
       <Text style={{ display: 'block', marginBottom: 32, color: colors.gray[500], fontSize: 16 }}>
         Completa la información de registro
       </Text>
@@ -151,6 +168,7 @@ export default function RegisterForm() {
             <Form.Item
               label={<span style={{ color: colors.gray[500], fontWeight: 500 }}>Nombre</span>}
               name="firstName"
+              required={false}
               rules={[{ required: true, message: 'Ingresa tu nombre' }]}
             >
               <Input placeholder="Digita tu nombre" />
@@ -160,6 +178,7 @@ export default function RegisterForm() {
             <Form.Item
               label={<span style={{ color: colors.gray[500], fontWeight: 500 }}>Apellido</span>}
               name="lastName"
+              required={false}
               rules={[{ required: true, message: 'Ingresa tu apellido' }]}
             >
               <Input placeholder="Digita tu apellido" />
@@ -172,6 +191,7 @@ export default function RegisterForm() {
             <Form.Item
               label={<span style={{ color: colors.gray[500], fontWeight: 500 }}>Sexo</span>}
               name="gender"
+              required={false}
               rules={[{ required: true, message: 'Selecciona tu sexo' }]}
             >
               <Select placeholder="Seleccionar">
@@ -185,6 +205,7 @@ export default function RegisterForm() {
             <Form.Item
               label={<span style={{ color: colors.gray[500], fontWeight: 500 }}>Fecha de nacimiento</span>}
               name="birthDate"
+              required={false}
               rules={[{ required: true, message: 'Selecciona tu fecha de nacimiento' }]}
             >
               <DatePicker placeholder="Seleccionar" style={{ width: '100%' }} />
@@ -197,6 +218,7 @@ export default function RegisterForm() {
             <Form.Item
               label={<span style={{ color: colors.gray[500], fontWeight: 500 }}>Correo electrónico</span>}
               name="email"
+              required={false}
               rules={[
                 { required: true, message: 'Ingresa tu email' },
                 { type: 'email', message: 'Email no válido' },
@@ -208,23 +230,30 @@ export default function RegisterForm() {
           <Col xs={24} sm={12}>
             <Form.Item
               label={<span style={{ color: colors.gray[500], fontWeight: 500 }}>Número de whatsapp</span>}
+              name="whatsapp"
+              required={false}
+              rules={[{ required: true, message: 'Ingresa tu número' }]}
             >
-              <Space.Compact style={{ width: '100%' }}>
-                <Form.Item name="whatsappCode" noStyle initialValue="503">
-                  <Select style={{ width: 100 }}>
-                    <Select.Option value="503">503</Select.Option>
-                    <Select.Option value="504">504</Select.Option>
-                    <Select.Option value="505">505</Select.Option>
-                  </Select>
-                </Form.Item>
-                <Form.Item
-                  name="whatsappNumber"
-                  noStyle
-                  rules={[{ required: true, message: 'Ingresa tu número' }]}
-                >
-                  <Input placeholder="7777 7777" style={{ width: '100%' }} />
-                </Form.Item>
-              </Space.Compact>
+              <PhoneInput
+                country={'sv'}
+                preferredCountries={['sv', 'hn', 'ni', 'gt', 'us', 'mx', 'cr']}
+                containerStyle={{ width: '100%' }}
+                inputStyle={{
+                  width: '100%',
+                  height: '48px',
+                  fontSize: '14px',
+                  borderRadius: '8px',
+                }}
+                buttonStyle={{
+                  borderRadius: '8px 0 0 8px',
+                }}
+                onChange={(_value, country: { dialCode?: string }) => {
+                  // Guardar el dialCode cuando cambia el país
+                  if (country.dialCode) {
+                    setWhatsappDialCode(country.dialCode);
+                  }
+                }}
+              />
             </Form.Item>
           </Col>
         </Row>
@@ -234,6 +263,7 @@ export default function RegisterForm() {
             <Form.Item
               label={<span style={{ color: colors.gray[500], fontWeight: 500 }}>Contraseña</span>}
               name="password"
+              required={false}
               rules={[
                 { required: true, message: 'Ingresa tu contraseña' },
                 { min: 6, message: 'Mínimo 6 caracteres' },
@@ -246,6 +276,7 @@ export default function RegisterForm() {
             <Form.Item
               label={<span style={{ color: colors.gray[500], fontWeight: 500 }}>Repetir contraseña</span>}
               name="confirmPassword"
+              required={false}
               dependencies={['password']}
               rules={[
                 { required: true, message: 'Confirma tu contraseña' },
@@ -270,13 +301,6 @@ export default function RegisterForm() {
           </Button>
         </Form.Item>
       </Form>
-
-      <Text style={{ display: 'block', textAlign: 'center', color: colors.gray[500] }}>
-        ¿Ya tienes cuenta?{' '}
-        <Link href="/login" style={{ color: colors.gray[500], fontWeight: 700 }}>
-          Inicia sesión
-        </Link>
-      </Text>
 
       {/* Modal de verificación de código */}
       <Modal

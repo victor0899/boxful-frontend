@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Form, Input, Button, message, Typography } from 'antd';
+import { Form, Input, Button, Typography, App } from 'antd';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
@@ -14,6 +14,7 @@ export default function LoginForm() {
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const router = useRouter();
+  const { message } = App.useApp();
 
   const onFinish = async (values: { email: string; password: string }) => {
     setLoading(true);
@@ -31,7 +32,7 @@ export default function LoginForm() {
 
   return (
     <>
-      <Title level={2} style={{ marginBottom: 8, color: colors.gray[500], fontWeight: 700 }}>
+      <Title level={2} style={{ marginBottom: 8, color: colors.blue.dark, fontWeight: 700 }}>
         Bienvenido
       </Title>
       <Text style={{ display: 'block', marginBottom: 32, color: colors.gray[500], fontSize: 16 }}>
@@ -42,6 +43,7 @@ export default function LoginForm() {
         <Form.Item
           label={<span style={{ color: colors.gray[500], fontWeight: 500 }}>Correo electrónico</span>}
           name="email"
+          required={false}
           rules={[
             { required: true, message: 'Ingresa tu email' },
             { type: 'email', message: 'Email no válido' },
@@ -53,6 +55,7 @@ export default function LoginForm() {
         <Form.Item
           label={<span style={{ color: colors.gray[500], fontWeight: 500 }}>Contraseña</span>}
           name="password"
+          required={false}
           rules={[{ required: true, message: 'Ingresa tu contraseña' }]}
         >
           <Input.Password placeholder="Digita tu contraseña" />
