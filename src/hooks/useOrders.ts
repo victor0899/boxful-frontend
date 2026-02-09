@@ -76,8 +76,15 @@ export function useOrders() {
     return data;
   };
 
-  const exportCsv = async () => {
-    const { data } = await api.get('/orders/export/csv', { responseType: 'blob' });
+  const exportCsv = async (query: OrdersQuery = {}) => {
+    const params = new URLSearchParams();
+    if (query.status) params.set('status', query.status);
+    if (query.fromDate) params.set('fromDate', query.fromDate);
+    if (query.toDate) params.set('toDate', query.toDate);
+    if (query.search) params.set('search', query.search);
+    if (query.isCOD) params.set('isCOD', query.isCOD);
+
+    const { data } = await api.get(`/orders/export/csv?${params.toString()}`, { responseType: 'blob' });
     const url = window.URL.createObjectURL(new Blob([data]));
     const link = document.createElement('a');
     link.href = url;

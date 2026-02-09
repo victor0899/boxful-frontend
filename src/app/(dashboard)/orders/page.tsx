@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useCallback, useRef, useState } from 'react';
-import { Button, Space, DatePicker, Table, Checkbox, App, Tabs } from 'antd';
-import { CalendarOutlined, ClockCircleOutlined, CheckCircleOutlined, TruckOutlined } from '@ant-design/icons';
+import { Button, Space, DatePicker, Table, Checkbox, App, Tabs, Dropdown } from 'antd';
+import { CalendarOutlined, ClockCircleOutlined, CheckCircleOutlined, TruckOutlined, DownloadOutlined } from '@ant-design/icons';
 import { useOrders } from '@/hooks/useOrders';
 import { useBalance } from '@/lib/balance-context';
 import api from '@/lib/api';
@@ -20,6 +20,8 @@ export default function OrdersPage() {
   const [exporting, setExporting] = useState(false);
   const [simulating, setSimulating] = useState(false);
   const [activeTab, setActiveTab] = useState<string>('pending');
+  const [sortField, setSortField] = useState<string | null>(null);
+  const [sortOrder, setSortOrder] = useState<'ascend' | 'descend' | null>(null);
   const initialized = useRef(false);
 
   useEffect(() => {
@@ -50,23 +52,85 @@ export default function OrdersPage() {
       filters.fromDate = dateRange[0].format('YYYY-MM-DD');
       filters.toDate = dateRange[1].format('YYYY-MM-DD');
     }
-    fetchOrders(filters);
-  }, [dateRange, activeTab, fetchOrders]);
 
-  const handlePageChange = useCallback(
-    (page: number, pageSize: number) => {
+    if (sortField && sortOrder) {
+      filters.sortBy = sortField;
+      filters.sortOrder = sortOrder === 'ascend' ? 'asc' : 'desc';
+    }
+
+    fetchOrders(filters);
+  }, [dateRange, activeTab, sortField, sortOrder, fetchOrders]);
+
+  const handleTableChange = useCallback(
+    (pagination: any, filters: any, sorter: any) => {
       const status = activeTab === 'pending'
         ? 'PENDING,IN_TRANSIT,CANCELLED'
         : 'DELIVERED';
-      fetchOrders({ page, limit: pageSize, status });
+
+      const queryParams: Record<string, unknown> = {
+        page: pagination.current,
+        limit: pagination.pageSize,
+        status,
+      };
+
+      // Agregar ordenamiento si existe
+      if (sorter.field && sorter.order) {
+        setSortField(sorter.field);
+        setSortOrder(sorter.order);
+        queryParams.sortBy = sorter.field;
+        queryParams.sortOrder = sorter.order === 'ascend' ? 'asc' : 'desc';
+      } else {
+        setSortField(null);
+        setSortOrder(null);
+      }
+
+      fetchOrders(queryParams);
     },
     [activeTab, fetchOrders],
   );
 
-  const handleExport = async () => {
+  const handleExport = async (format: 'csv' | 'excel') => {
     setExporting(true);
     try {
-      await exportCsv();
+      const filters: Record<string, unknown> = {};
+
+      // Incluir filtro de status según el tab activo
+      const status = activeTab === 'pending'
+        ? 'PENDING,IN_TRANSIT,CANCELLED'
+        : 'DELIVERED';
+      filters.status = status;
+
+      if (dateRange && dateRange[0] && dateRange[1]) {
+        filters.fromDate = dateRange[0].format('YYYY-MM-DD');
+        filters.toDate = dateRange[1].format('YYYY-MM-DD');
+      }
+
+      if (format === 'csv') {
+        await exportCsv(filters);
+      } else {
+        // Excel export - llamar a endpoint diferente
+        const params = new URLSearchParams();
+        if (filters.status) params.set('status', filters.status as string);
+        if (filters.fromDate) params.set('fromDate', filters.fromDate as string);
+        if (filters.toDate) params.set('toDate', filters.toDate as string);
+
+        const response = await api.get(`/orders/export/excel?${params.toString()}`, {
+          responseType: 'blob',
+        });
+
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'ordenes.xlsx');
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+      }
+
+      message.success(`Órdenes exportadas en formato ${format.toUpperCase()}`);
+    } catch (error) {
+      message.error('Error al exportar órdenes');
     } finally {
       setExporting(false);
     }
@@ -162,24 +226,28 @@ export default function OrdersPage() {
     {
       title: 'Nombre',
       dataIndex: 'clientName',
-      key: 'firstName',
+      key: 'clientName',
       render: (name: string) => name.split(' ')[0] || '',
+      sorter: true,
     },
     {
       title: 'Apellidos',
       dataIndex: 'clientName',
-      key: 'lastName',
+      key: 'clientName',
       render: (name: string) => name.split(' ').slice(1).join(' ') || '',
+      sorter: true,
     },
     {
       title: 'Departamento',
       dataIndex: 'clientDepartment',
-      key: 'department',
+      key: 'clientDepartment',
+      sorter: true,
     },
     {
       title: 'Municipio',
       dataIndex: 'clientMunicipality',
-      key: 'municipality',
+      key: 'clientMunicipality',
+      sorter: true,
     },
     {
       title: 'Paquetes en orden',
@@ -208,9 +276,27 @@ export default function OrdersPage() {
           <Button type="primary" onClick={handleSearch} loading={loading}>
             Buscar
           </Button>
-          <Button onClick={handleExport} loading={exporting}>
-            Descargar órdenes
-          </Button>
+          <Dropdown
+            menu={{
+              items: [
+                {
+                  key: 'csv',
+                  label: 'Descargar CSV',
+                  onClick: () => handleExport('csv'),
+                },
+                {
+                  key: 'excel',
+                  label: 'Descargar Excel',
+                  onClick: () => handleExport('excel'),
+                },
+              ],
+            }}
+            trigger={['hover']}
+          >
+            <Button loading={exporting} icon={<DownloadOutlined />}>
+              Descargar órdenes
+            </Button>
+          </Dropdown>
         </Space>
         {process.env.NODE_ENV === 'development' && activeTab === 'pending' && (
           <Button
@@ -242,11 +328,11 @@ export default function OrdersPage() {
                 dataSource={orders}
                 rowKey="id"
                 loading={loading}
+                onChange={handleTableChange}
                 pagination={{
                   current: meta.page,
                   pageSize: meta.limit,
                   total: meta.total,
-                  onChange: handlePageChange,
                   showSizeChanger: true,
                   showTotal: (total) => `Total ${total} órdenes`,
                 }}
@@ -269,11 +355,11 @@ export default function OrdersPage() {
                 dataSource={orders}
                 rowKey="id"
                 loading={loading}
+                onChange={handleTableChange}
                 pagination={{
                   current: meta.page,
                   pageSize: meta.limit,
                   total: meta.total,
-                  onChange: handlePageChange,
                   showSizeChanger: true,
                   showTotal: (total) => `Total ${total} órdenes`,
                 }}
