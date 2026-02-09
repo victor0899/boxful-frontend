@@ -11,7 +11,6 @@ import {
   Col,
   DatePicker,
   Select,
-  InputNumber,
   App,
 } from 'antd';
 import { ArrowRightOutlined, ArrowLeftOutlined, PlusOutlined, DeleteOutlined } from '@ant-design/icons';
@@ -24,6 +23,7 @@ import dayjs from 'dayjs';
 import { useOrders } from '@/hooks/useOrders';
 import { colors } from '@/lib/theme';
 import type { AxiosError } from 'axios';
+import DimensionsInput from './DimensionsInput';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -392,7 +392,7 @@ export default function OrderForm() {
             }}
           >
             <Row gutter={16} align="middle">
-              <Col xs={24} sm={3}>
+              <Col flex="0 0 auto">
                 <div
                   style={{
                     display: 'flex',
@@ -403,47 +403,15 @@ export default function OrderForm() {
                   <Image src="/images/box1.svg" alt="Box" width={30} height={30} />
                 </div>
               </Col>
-              <Col xs={12} sm={3}>
-                <div>
-                  <Text style={{ fontSize: 12, color: colors.gray[500], fontWeight: 500 }}>Largo</Text>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <InputNumber
-                      min={1}
-                      value={currentPackage.length}
-                      onChange={(value) => setCurrentPackage({ ...currentPackage, length: value || 0 })}
-                      style={{ width: 60 }}
-                    />
-                    <Text style={{ fontSize: 12, color: colors.gray[300] }}>cm</Text>
-                  </div>
-                </div>
-              </Col>
-              <Col xs={12} sm={3}>
-                <div>
-                  <Text style={{ fontSize: 12, color: colors.gray[500], fontWeight: 500 }}>Alto</Text>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <InputNumber
-                      min={1}
-                      value={currentPackage.height}
-                      onChange={(value) => setCurrentPackage({ ...currentPackage, height: value || 0 })}
-                      style={{ width: 60 }}
-                    />
-                    <Text style={{ fontSize: 12, color: colors.gray[300] }}>cm</Text>
-                  </div>
-                </div>
-              </Col>
-              <Col xs={12} sm={3}>
-                <div>
-                  <Text style={{ fontSize: 12, color: colors.gray[500], fontWeight: 500 }}>Ancho</Text>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <InputNumber
-                      min={1}
-                      value={currentPackage.width}
-                      onChange={(value) => setCurrentPackage({ ...currentPackage, width: value || 0 })}
-                      style={{ width: 60 }}
-                    />
-                    <Text style={{ fontSize: 12, color: colors.gray[300] }}>cm</Text>
-                  </div>
-                </div>
+
+              {/* Dimensiones agrupadas */}
+              <Col xs={24} sm={9}>
+                <DimensionsInput
+                  length={currentPackage.length}
+                  height={currentPackage.height}
+                  width={currentPackage.width}
+                  onChange={(dimension, value) => setCurrentPackage({ ...currentPackage, [dimension]: value })}
+                />
               </Col>
               <Col xs={12} sm={4}>
                 <div>
@@ -459,7 +427,7 @@ export default function OrderForm() {
                   />
                 </div>
               </Col>
-              <Col xs={24} sm={8}>
+              <Col flex="1 1 auto">
                 <div>
                   <Text style={{ fontSize: 12, color: colors.gray[500], fontWeight: 500 }}>Contenido</Text>
                   <Input
@@ -528,43 +496,14 @@ export default function OrderForm() {
                   </div>
                 </Col>
 
-                {/* Largo */}
+                {/* Dimensiones en modo readonly */}
                 <Col flex="0 0 auto">
-                  <div>
-                    <Text style={{ fontSize: 14, color: colors.gray[500], fontWeight: 500, display: 'block', marginBottom: 8 }}>
-                      Largo
-                    </Text>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <Text style={{ fontSize: 16, color: colors.gray[500] }}>{pkg.length}</Text>
-                      <Text style={{ fontSize: 14, color: colors.gray[300] }}>cm</Text>
-                    </div>
-                  </div>
-                </Col>
-
-                {/* Alto */}
-                <Col flex="0 0 auto">
-                  <div>
-                    <Text style={{ fontSize: 14, color: colors.gray[500], fontWeight: 500, display: 'block', marginBottom: 8 }}>
-                      Alto
-                    </Text>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <Text style={{ fontSize: 16, color: colors.gray[500] }}>{pkg.height}</Text>
-                      <Text style={{ fontSize: 14, color: colors.gray[300] }}>cm</Text>
-                    </div>
-                  </div>
-                </Col>
-
-                {/* Ancho */}
-                <Col flex="0 0 auto">
-                  <div>
-                    <Text style={{ fontSize: 14, color: colors.gray[500], fontWeight: 500, display: 'block', marginBottom: 8 }}>
-                      Ancho
-                    </Text>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <Text style={{ fontSize: 16, color: colors.gray[500] }}>{pkg.width}</Text>
-                      <Text style={{ fontSize: 14, color: colors.gray[300] }}>cm</Text>
-                    </div>
-                  </div>
+                  <DimensionsInput
+                    length={pkg.length}
+                    height={pkg.height}
+                    width={pkg.width}
+                    readOnly
+                  />
                 </Col>
 
                 {/* Botón eliminar - solo icono */}
