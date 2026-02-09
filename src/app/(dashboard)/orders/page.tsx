@@ -2,7 +2,7 @@
 
 import { useEffect, useCallback, useRef, useState } from 'react';
 import { Button, Space, DatePicker, Table, Checkbox, App, Tabs } from 'antd';
-import { CalendarOutlined } from '@ant-design/icons';
+import { CalendarOutlined, ClockCircleOutlined, CheckCircleOutlined, TruckOutlined } from '@ant-design/icons';
 import { useOrders } from '@/hooks/useOrders';
 import api from '@/lib/api';
 import type { Order } from '@/types';
@@ -183,8 +183,9 @@ export default function OrdersPage() {
               onClick={handleSimulateDelivery}
               loading={simulating}
               disabled={selectedRowKeys.length === 0}
+              icon={<TruckOutlined />}
             >
-              🚚 Simular entregas ({selectedRowKeys.length})
+              Simular entregas ({selectedRowKeys.length})
             </Button>
           )}
         </Space>
@@ -197,7 +198,11 @@ export default function OrdersPage() {
         items={[
           {
             key: 'pending',
-            label: `📦 Pendientes (${meta.counts?.pendingTotal ?? 0})`,
+            label: (
+              <span>
+                <ClockCircleOutlined /> Pendientes ({meta.counts?.pendingTotal ?? 0})
+              </span>
+            ),
             children: (
               <Table
                 columns={columns}
@@ -220,7 +225,11 @@ export default function OrdersPage() {
           },
           {
             key: 'delivered',
-            label: `✅ Entregadas (${meta.counts?.deliveredTotal ?? 0})`,
+            label: (
+              <span>
+                <CheckCircleOutlined /> Entregadas ({meta.counts?.deliveredTotal ?? 0})
+              </span>
+            ),
             children: (
               <Table
                 columns={columns}
