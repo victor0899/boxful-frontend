@@ -32,6 +32,12 @@ export const colors = {
     50: '#fff4f1',
   },
 
+  // Dark green palette (for settlement balance)
+  darkGreen: {
+    50: '#e1e9e8',
+    500: '#1a5656',
+  },
+
   // Text colors
   textDark: '#161734',
 };
