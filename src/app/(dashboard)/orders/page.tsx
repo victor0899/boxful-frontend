@@ -4,6 +4,7 @@ import { useEffect, useCallback, useRef, useState } from 'react';
 import { Button, Space, DatePicker, Table, Checkbox, App, Tabs } from 'antd';
 import { CalendarOutlined, ClockCircleOutlined, CheckCircleOutlined, TruckOutlined } from '@ant-design/icons';
 import { useOrders } from '@/hooks/useOrders';
+import { useBalance } from '@/lib/balance-context';
 import api from '@/lib/api';
 import type { Order } from '@/types';
 import type { Dayjs } from 'dayjs';
@@ -12,6 +13,7 @@ const { RangePicker } = DatePicker;
 
 export default function OrdersPage() {
   const { orders, meta, loading, fetchOrders, exportCsv } = useOrders();
+  const { refetchBalance } = useBalance();
   const { message } = App.useApp();
   const [dateRange, setDateRange] = useState<[Dayjs | null, Dayjs | null] | null>(null);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
@@ -93,7 +95,13 @@ export default function OrdersPage() {
 
       message.success(`${selectedOrders.length} orden(es) marcada(s) como entregada(s)`);
       setSelectedRowKeys([]);
-      fetchOrders(); // Refrescar la tabla
+      // Refrescar la tabla con el filtro del tab actual
+      const status = activeTab === 'pending'
+        ? 'PENDING,IN_TRANSIT,CANCELLED'
+        : 'DELIVERED';
+      fetchOrders({ status });
+      // Refrescar el balance en el header
+      refetchBalance();
     } catch (error) {
       message.error('Error al simular entregas');
     } finally {

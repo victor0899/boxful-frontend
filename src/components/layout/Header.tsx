@@ -4,7 +4,7 @@ import { Layout, Button, Dropdown, Typography } from 'antd';
 import { UserOutlined, LogoutOutlined, WalletOutlined } from '@ant-design/icons';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
-import { useBalance } from '@/hooks/useBalance';
+import { useBalance } from '@/lib/balance-context';
 import { colors } from '@/lib/theme';
 
 const { Header: AntHeader } = Layout;
