@@ -6,6 +6,7 @@ import { Spin, App } from 'antd';
 import { useAuth } from '@/lib/auth-context';
 import Sidebar from '@/components/layout/Sidebar';
 import Header from '@/components/layout/Header';
+import Footer from '@/components/layout/Footer';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -36,6 +37,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               {children}
             </div>
           </div>
+          <Footer />
         </div>
       </div>
     </App>
