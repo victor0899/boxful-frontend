@@ -27,6 +27,11 @@ export const colors = {
     500: '#f45151',
   },
 
+  // Orange palette
+  orange: {
+    50: '#fff4f1',
+  },
+
   // Text colors
   textDark: '#161734',
 };

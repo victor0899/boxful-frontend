@@ -12,8 +12,12 @@ import {
   DatePicker,
   Select,
   App,
+  Switch,
+  InputNumber,
+  Modal,
+  Tooltip,
 } from 'antd';
-import { ArrowRightOutlined, ArrowLeftOutlined, PlusOutlined, DeleteOutlined } from '@ant-design/icons';
+import { ArrowRightOutlined, ArrowLeftOutlined, PlusOutlined, DeleteOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { State, City } from 'country-state-city';
@@ -45,6 +49,9 @@ export default function OrderForm() {
   const [step1Data, setStep1Data] = useState<Record<string, unknown>>({});
   const [selectedDepartment, setSelectedDepartment] = useState<string | null>(null);
   const [phoneDialCode, setPhoneDialCode] = useState<string>('503');
+  const [isCOD, setIsCOD] = useState(false);
+  const [codAmount, setCodAmount] = useState<number>(0);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const { createOrder } = useOrders();
   const router = useRouter();
   const { message } = App.useApp();
@@ -130,6 +137,9 @@ export default function OrderForm() {
         clientDepartment: departmentName,
         clientMunicipality: step1Data.municipality as string,
         clientReference: step1Data.referencePoint as string | undefined,
+        // COD (Pago contra entrega)
+        isCOD,
+        codExpectedAmount: isCOD && codAmount > 0 ? codAmount : undefined,
         // Paquetes (del paso 2)
         packages: packages.map((pkg) => ({
           description: pkg.description,
@@ -142,8 +152,7 @@ export default function OrderForm() {
       };
 
       await createOrder(orderData);
-      message.success('Orden creada exitosamente');
-      router.push('/orders');
+      setShowSuccessModal(true);
     } catch (error) {
       const axiosError = error as AxiosError<{ message?: string | string[] }>;
       if (axiosError.response?.data?.message) {
@@ -358,6 +367,72 @@ export default function OrderForm() {
             </Col>
           </Row>
 
+          {/* Row 6: COD (Pago contra entrega) */}
+          <Row>
+            <Col xs={24}>
+              <div
+                style={{
+                  backgroundColor: colors.orange[50],
+                  padding: 16,
+                  borderRadius: 8,
+                  marginBottom: 24,
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isCOD ? 16 : 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <Tooltip title="Permite que el cliente pague su pedido al recibirlo, sin necesidad de pagar en línea previamente.">
+                      <InfoCircleOutlined style={{ fontSize: 16, color: colors.gray[500], cursor: 'pointer' }} />
+                    </Tooltip>
+                    <Text style={{ fontSize: 14, color: colors.gray[500], fontWeight: 500 }}>
+                      Pago contra entrega (PCE)
+                    </Text>
+                  </div>
+                  <Switch
+                    checked={isCOD}
+                    onChange={setIsCOD}
+                    style={{ backgroundColor: isCOD ? colors.success[500] : undefined }}
+                  />
+                </div>
+                {isCOD && (
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <Text style={{ fontSize: 14, color: colors.gray[500], marginRight: 4 }}>
+                      Tu cliente paga el <strong>monto que indiques</strong> al momento de la entrega
+                    </Text>
+                    <div
+                      style={{
+                        width: 200,
+                        height: 48,
+                        border: '1px solid #d9d9d9',
+                        borderRadius: 8,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '0 12px',
+                        backgroundColor: '#fff',
+                      }}
+                    >
+                      <Text style={{ color: colors.gray[500] }}>$</Text>
+                      <input
+                        type="number"
+                        value={codAmount > 0 ? codAmount : ''}
+                        onChange={(e) => setCodAmount(parseFloat(e.target.value) || 0)}
+                        placeholder="00.00"
+                        style={{
+                          border: 'none',
+                          outline: 'none',
+                          textAlign: 'right',
+                          width: '100%',
+                          fontSize: 14,
+                          color: colors.gray[500],
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </Col>
+          </Row>
+
             {/* Next Button */}
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 24 }}>
               <Button
@@ -548,6 +623,89 @@ export default function OrderForm() {
           </div>
         </Card>
       )}
+
+      {/* Modal de éxito */}
+      <Modal
+        open={showSuccessModal}
+        onCancel={() => setShowSuccessModal(false)}
+        footer={null}
+        closable={true}
+        closeIcon={<span style={{ fontSize: 24, color: colors.gray[500] }}>×</span>}
+        centered
+        width={600}
+      >
+        <div style={{ textAlign: 'center', padding: '32px 0' }}>
+          {/* Icono de éxito */}
+          <div
+            style={{
+              width: 120,
+              height: 120,
+              borderRadius: '50%',
+              backgroundColor: '#d4edda',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 32px',
+            }}
+          >
+            <div
+              style={{
+                width: 80,
+                height: 80,
+                borderRadius: '50%',
+                backgroundColor: '#28a745',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+                <path d="M20 6L9 17L4 12" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+          </div>
+
+          {/* Título */}
+          <Title level={2} style={{ marginBottom: 16, fontSize: 32 }}>
+            Orden <strong>enviada</strong>
+          </Title>
+
+          {/* Descripción */}
+          <Text style={{ fontSize: 16, color: colors.gray[500], display: 'block', marginBottom: 32 }}>
+            La orden ha sido creada y enviada, puedes
+          </Text>
+
+          {/* Botones */}
+          <div style={{ display: 'flex', gap: 16, justifyContent: 'center' }}>
+            <Button
+              size="large"
+              onClick={() => {
+                setShowSuccessModal(false);
+                router.push('/orders');
+              }}
+              style={{ minWidth: 160, height: 48, fontSize: 16 }}
+            >
+              Ir a inicio
+            </Button>
+            <Button
+              type="primary"
+              size="large"
+              onClick={() => {
+                setShowSuccessModal(false);
+                setCurrentStep(0);
+                setPackages([]);
+                setCurrentPackage({});
+                setIsCOD(false);
+                setCodAmount(0);
+                form.resetFields();
+              }}
+              style={{ minWidth: 160, height: 48, fontSize: 16 }}
+            >
+              Crear otra
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </>
   );
 }
