@@ -16,6 +16,7 @@ import {
 } from 'antd';
 import { ArrowRightOutlined, ArrowLeftOutlined, PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { State, City } from 'country-state-city';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
@@ -397,10 +398,9 @@ export default function OrderForm() {
                     display: 'flex',
                     justifyContent: 'center',
                     alignItems: 'center',
-                    fontSize: 40,
                   }}
                 >
-                  📦
+                  <Image src="/images/box1.svg" alt="Box" width={40} height={40} />
                 </div>
               </Col>
               <Col xs={12} sm={3}>
@@ -409,7 +409,6 @@ export default function OrderForm() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                     <InputNumber
                       min={1}
-                      
                       value={currentPackage.length}
                       onChange={(value) => setCurrentPackage({ ...currentPackage, length: value || 0 })}
                       style={{ width: 60 }}
@@ -424,7 +423,6 @@ export default function OrderForm() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                     <InputNumber
                       min={1}
-                      
                       value={currentPackage.height}
                       onChange={(value) => setCurrentPackage({ ...currentPackage, height: value || 0 })}
                       style={{ width: 60 }}
@@ -439,7 +437,6 @@ export default function OrderForm() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                     <InputNumber
                       min={1}
-                      
                       value={currentPackage.width}
                       onChange={(value) => setCurrentPackage({ ...currentPackage, width: value || 0 })}
                       style={{ width: 60 }}
@@ -462,22 +459,28 @@ export default function OrderForm() {
                   />
                 </div>
               </Col>
-              <Col xs={24} sm={6}>
+              <Col xs={24} sm={8}>
                 <div>
                   <Text style={{ fontSize: 12, color: colors.gray[500], fontWeight: 500 }}>Contenido</Text>
                   <Input
-                    
+
                     value={currentPackage.description}
                     onChange={(e) => setCurrentPackage({ ...currentPackage, description: e.target.value })}
                   />
                 </div>
               </Col>
-              <Col xs={24} sm={2}>
+              <Col xs={24} style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 16 }}>
                 <Button
                   type="default"
                   icon={<PlusOutlined />}
+                  iconPosition="end"
                   onClick={handleAddPackage}
-                  style={{ width: '100%', marginTop: 16 }}
+                  style={{
+                    background: '#fff',
+                    color: colors.textDark,
+                    fontWeight: 500,
+                    borderColor: '#d9d9d9',
+                  }}
                 >
                   Agregar
                 </Button>
@@ -518,10 +521,9 @@ export default function OrderForm() {
                       display: 'flex',
                       justifyContent: 'center',
                       alignItems: 'center',
-                      fontSize: 32,
                     }}
                   >
-                    📦
+                    <Image src="/images/box1.svg" alt="Box" width={32} height={32} />
                   </div>
                 </Col>
                 <Col xs={6} sm={2}>
