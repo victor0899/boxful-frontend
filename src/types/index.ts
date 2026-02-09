@@ -49,6 +49,14 @@ export interface PaginatedResponse<T> {
     page: number;
     limit: number;
     totalPages: number;
+    counts?: {
+      pending: number;
+      inTransit: number;
+      delivered: number;
+      cancelled: number;
+      pendingTotal: number;
+      deliveredTotal: number;
+    };
   };
 }
 

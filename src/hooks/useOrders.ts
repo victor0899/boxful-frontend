@@ -43,7 +43,12 @@ interface CreateOrderData {
 
 export function useOrders() {
   const [orders, setOrders] = useState<Order[]>([]);
-  const [meta, setMeta] = useState({ total: 0, page: 1, limit: 10, totalPages: 0 });
+  const [meta, setMeta] = useState<PaginatedResponse<Order>['meta']>({
+    total: 0,
+    page: 1,
+    limit: 10,
+    totalPages: 0,
+  });
   const [loading, setLoading] = useState(false);
 
   const fetchOrders = useCallback(async (query: OrdersQuery = {}) => {
