@@ -6,13 +6,13 @@ import {
   Input,
   Button,
   Card,
-  message,
   Typography,
   Row,
   Col,
   DatePicker,
   Select,
   InputNumber,
+  App,
 } from 'antd';
 import { ArrowRightOutlined, ArrowLeftOutlined, PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
@@ -46,6 +46,7 @@ export default function OrderForm() {
   const [phoneDialCode, setPhoneDialCode] = useState<string>('503');
   const { createOrder } = useOrders();
   const router = useRouter();
+  const { message } = App.useApp();
 
   // Obtener departamentos de El Salvador (código ISO: SV)
   const departments = useMemo(() => {

@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Spin } from 'antd';
+import { Spin, App } from 'antd';
 import { useAuth } from '@/lib/auth-context';
 import Sidebar from '@/components/layout/Sidebar';
 import Header from '@/components/layout/Header';
@@ -26,16 +26,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
-      <Sidebar />
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-        <Header />
-        <div style={{ flex: 1, padding: 24, background: '#f5f5f5' }}>
-          <div style={{ background: '#fff', padding: 24, borderRadius: 8, minHeight: '100%' }}>
-            {children}
+    <App>
+      <div style={{ display: 'flex', minHeight: '100vh' }}>
+        <Sidebar />
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+          <Header />
+          <div style={{ flex: 1, padding: 24, background: '#f5f5f5' }}>
+            <div style={{ background: '#fff', padding: 24, borderRadius: 8, minHeight: '100%' }}>
+              {children}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </App>
   );
 }
