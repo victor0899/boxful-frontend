@@ -63,6 +63,8 @@ export default function OrdersPage() {
 
   const handleTableChange = useCallback(
     (pagination: any, filters: any, sorter: any) => {
+      console.log('handleTableChange called:', { pagination, filters, sorter });
+
       const status = activeTab === 'pending'
         ? 'PENDING,IN_TRANSIT,CANCELLED'
         : 'DELIVERED';
@@ -77,13 +79,26 @@ export default function OrdersPage() {
       if (sorter.field && sorter.order) {
         setSortField(sorter.field);
         setSortOrder(sorter.order);
-        queryParams.sortBy = sorter.field;
+
+        // Mapear keys del frontend a campos del backend
+        const fieldMap: Record<string, string> = {
+          firstName: 'clientName',
+          lastName: 'clientName',
+          clientDepartment: 'clientDepartment',
+          clientMunicipality: 'clientMunicipality',
+        };
+
+        const backendField = fieldMap[sorter.field] || sorter.field;
+        queryParams.sortBy = backendField;
         queryParams.sortOrder = sorter.order === 'ascend' ? 'asc' : 'desc';
+
+        console.log('Sorting params:', { sortBy: backendField, sortOrder: queryParams.sortOrder });
       } else {
         setSortField(null);
         setSortOrder(null);
       }
 
+      console.log('Final query params:', queryParams);
       fetchOrders(queryParams);
     },
     [activeTab, fetchOrders],
@@ -94,15 +109,20 @@ export default function OrdersPage() {
     try {
       const filters: Record<string, unknown> = {};
 
-      // Incluir filtro de status según el tab activo
-      const status = activeTab === 'pending'
-        ? 'PENDING,IN_TRANSIT,CANCELLED'
-        : 'DELIVERED';
-      filters.status = status;
+      // Si hay órdenes seleccionadas, exportar solo esas (ignorar otros filtros)
+      if (selectedRowKeys.length > 0) {
+        filters.ids = selectedRowKeys.join(',');
+      } else {
+        // Si no hay selección, usar filtros normales
+        const status = activeTab === 'pending'
+          ? 'PENDING,IN_TRANSIT,CANCELLED'
+          : 'DELIVERED';
+        filters.status = status;
 
-      if (dateRange && dateRange[0] && dateRange[1]) {
-        filters.fromDate = dateRange[0].format('YYYY-MM-DD');
-        filters.toDate = dateRange[1].format('YYYY-MM-DD');
+        if (dateRange && dateRange[0] && dateRange[1]) {
+          filters.fromDate = dateRange[0].format('YYYY-MM-DD');
+          filters.toDate = dateRange[1].format('YYYY-MM-DD');
+        }
       }
 
       if (format === 'csv') {
@@ -110,9 +130,13 @@ export default function OrdersPage() {
       } else {
         // Excel export - llamar a endpoint diferente
         const params = new URLSearchParams();
-        if (filters.status) params.set('status', filters.status as string);
-        if (filters.fromDate) params.set('fromDate', filters.fromDate as string);
-        if (filters.toDate) params.set('toDate', filters.toDate as string);
+        if (filters.ids) {
+          params.set('ids', filters.ids as string);
+        } else {
+          if (filters.status) params.set('status', filters.status as string);
+          if (filters.fromDate) params.set('fromDate', filters.fromDate as string);
+          if (filters.toDate) params.set('toDate', filters.toDate as string);
+        }
 
         const response = await api.get(`/orders/export/excel?${params.toString()}`, {
           responseType: 'blob',
@@ -128,7 +152,8 @@ export default function OrdersPage() {
         window.URL.revokeObjectURL(url);
       }
 
-      message.success(`Órdenes exportadas en formato ${format.toUpperCase()}`);
+      const count = selectedRowKeys.length > 0 ? selectedRowKeys.length : 'todas las';
+      message.success(`${count} orden(es) exportadas en formato ${format.toUpperCase()}`);
     } catch (error) {
       message.error('Error al exportar órdenes');
     } finally {
@@ -226,28 +251,32 @@ export default function OrdersPage() {
     {
       title: 'Nombre',
       dataIndex: 'clientName',
-      key: 'clientName',
+      key: 'firstName',
       render: (name: string) => name.split(' ')[0] || '',
       sorter: true,
+      sortOrder: sortField === 'firstName' ? sortOrder : null,
     },
     {
       title: 'Apellidos',
       dataIndex: 'clientName',
-      key: 'clientName',
+      key: 'lastName',
       render: (name: string) => name.split(' ').slice(1).join(' ') || '',
       sorter: true,
+      sortOrder: sortField === 'lastName' ? sortOrder : null,
     },
     {
       title: 'Departamento',
       dataIndex: 'clientDepartment',
       key: 'clientDepartment',
       sorter: true,
+      sortOrder: sortField === 'clientDepartment' ? sortOrder : null,
     },
     {
       title: 'Municipio',
       dataIndex: 'clientMunicipality',
       key: 'clientMunicipality',
       sorter: true,
+      sortOrder: sortField === 'clientMunicipality' ? sortOrder : null,
     },
     {
       title: 'Paquetes en orden',

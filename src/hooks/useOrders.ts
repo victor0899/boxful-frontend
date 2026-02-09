@@ -12,6 +12,8 @@ interface OrdersQuery {
   isCOD?: string;
   page?: number;
   limit?: number;
+  sortBy?: string;
+  sortOrder?: string;
 }
 
 interface CreateOrderData {
@@ -60,6 +62,8 @@ export function useOrders() {
       if (query.toDate) params.set('toDate', query.toDate);
       if (query.search) params.set('search', query.search);
       if (query.isCOD) params.set('isCOD', query.isCOD);
+      if (query.sortBy) params.set('sortBy', query.sortBy);
+      if (query.sortOrder) params.set('sortOrder', query.sortOrder);
       params.set('page', String(query.page || 1));
       params.set('limit', String(query.limit || 10));
 
