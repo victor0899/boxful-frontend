@@ -104,7 +104,7 @@ export default function Sidebar() {
           }}
         >
           <SearchOutlined style={{ fontSize: 20 }} />
-          <span>Historial</span>
+          <span>Mis envíos</span>
         </div>
       </div>
     </Sider>

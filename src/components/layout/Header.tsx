@@ -16,7 +16,7 @@ export default function Header() {
 
   const getPageTitle = () => {
     if (pathname === '/orders/create') return 'Crear orden';
-    if (pathname === '/orders') return 'Historial';
+    if (pathname === '/orders') return 'Mis envíos';
     return '';
   };
 
