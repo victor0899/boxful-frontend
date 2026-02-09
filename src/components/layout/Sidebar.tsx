@@ -5,7 +5,7 @@ import { Layout } from 'antd';
 import Image from 'next/image';
 import {
   PlusOutlined,
-  SearchOutlined,
+  FileSearchOutlined,
 } from '@ant-design/icons';
 import { colors } from '@/lib/theme';
 
@@ -57,7 +57,7 @@ export default function Sidebar() {
             justifyContent: 'center',
             gap: 8,
             cursor: 'pointer',
-            borderRadius: 8,
+            borderRadius: 4,
             background: pathname === '/orders/create' ? colors.blue[500] : 'transparent',
             color: pathname === '/orders/create' ? '#fff' : colors.textDark,
             transition: 'all 0.2s',
@@ -87,7 +87,7 @@ export default function Sidebar() {
             justifyContent: 'center',
             gap: 8,
             cursor: 'pointer',
-            borderRadius: 8,
+            borderRadius: 4,
             background: pathname === '/orders' ? colors.blue[500] : 'transparent',
             color: pathname === '/orders' ? '#fff' : colors.textDark,
             transition: 'all 0.2s',
@@ -103,8 +103,8 @@ export default function Sidebar() {
             }
           }}
         >
-          <SearchOutlined style={{ fontSize: 20 }} />
-          <span>Mis envíos</span>
+          <FileSearchOutlined style={{ fontSize: 20 }} />
+          <span>Historial</span>
         </div>
       </div>
     </Sider>
