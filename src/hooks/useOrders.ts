@@ -14,6 +14,7 @@ interface OrdersQuery {
   limit?: number;
   sortBy?: string;
   sortOrder?: string;
+  ids?: string;
 }
 
 interface CreateOrderData {
@@ -82,6 +83,7 @@ export function useOrders() {
 
   const exportCsv = async (query: OrdersQuery = {}) => {
     const params = new URLSearchParams();
+    if (query.ids) params.set('ids', query.ids);
     if (query.status) params.set('status', query.status);
     if (query.fromDate) params.set('fromDate', query.fromDate);
     if (query.toDate) params.set('toDate', query.toDate);
