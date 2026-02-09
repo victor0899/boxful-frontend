@@ -636,33 +636,14 @@ export default function OrderForm() {
       >
         <div style={{ textAlign: 'center', padding: '32px 0' }}>
           {/* Icono de éxito */}
-          <div
-            style={{
-              width: 120,
-              height: 120,
-              borderRadius: '50%',
-              backgroundColor: '#d4edda',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto 32px',
-            }}
-          >
-            <div
-              style={{
-                width: 80,
-                height: 80,
-                borderRadius: '50%',
-                backgroundColor: '#28a745',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
-                <path d="M20 6L9 17L4 12" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </div>
+          <div style={{ margin: '0 auto 32px', display: 'flex', justifyContent: 'center' }}>
+            <Image
+              src="/images/done.svg"
+              alt="Success"
+              width={90}
+              height={90}
+              style={{ borderRadius: 12 }}
+            />
           </div>
 
           {/* Título */}
