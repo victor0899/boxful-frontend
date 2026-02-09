@@ -17,6 +17,16 @@ export const colors = {
     100: '#ededed',
   },
 
+  // Success palette
+  success: {
+    500: '#73bd28',
+  },
+
+  // Error palette
+  error: {
+    500: '#f45151',
+  },
+
   // Text colors
   textDark: '#161734',
 };
