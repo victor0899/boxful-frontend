@@ -400,7 +400,7 @@ export default function OrderForm() {
                     alignItems: 'center',
                   }}
                 >
-                  <Image src="/images/box1.svg" alt="Box" width={40} height={40} />
+                  <Image src="/images/box1.svg" alt="Box" width={30} height={30} />
                 </div>
               </Col>
               <Col xs={12} sm={3}>
@@ -493,69 +493,93 @@ export default function OrderForm() {
             <div
               key={index}
               style={{
-                border: `2px solid #52c41a`,
-                borderRadius: 8,
-                padding: 16,
+                border: `2px solid ${colors.success[500]}`,
+                borderRadius: 16,
+                padding: '24px 32px',
                 marginBottom: 16,
-                backgroundColor: '#f6ffed',
+                backgroundColor: 'transparent',
               }}
             >
-              <Row gutter={16} align="middle">
-                <Col xs={6} sm={3}>
-                  <Text style={{ fontSize: 12, color: colors.gray[500], fontWeight: 500 }}>
-                    Peso en libras
-                  </Text>
+              <Row gutter={24} align="middle">
+                {/* Peso en libras */}
+                <Col flex="0 0 180px">
                   <div>
-                    <Text style={{ fontSize: 14 }}>{pkg.weight} libras</Text>
+                    <Text style={{ fontSize: 14, color: colors.gray[500], fontWeight: 500, display: 'block', marginBottom: 8 }}>
+                      Peso en libras
+                    </Text>
+                    <Input value={`${pkg.weight} libras`} readOnly style={{ cursor: 'default' }} />
                   </div>
                 </Col>
-                <Col xs={12} sm={6}>
-                  <Text style={{ fontSize: 12, color: colors.gray[500], fontWeight: 500 }}>Contenido</Text>
+
+                {/* Contenido */}
+                <Col flex="1 1 auto">
                   <div>
-                    <Text style={{ fontSize: 14 }}>{pkg.description}</Text>
+                    <Text style={{ fontSize: 14, color: colors.gray[500], fontWeight: 500, display: 'block', marginBottom: 8 }}>
+                      Contenido
+                    </Text>
+                    <Input value={pkg.description} readOnly style={{ cursor: 'default' }} />
                   </div>
                 </Col>
-                <Col xs={6} sm={2}>
-                  <div
+
+                {/* Icono de caja */}
+                <Col flex="0 0 auto">
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 16px' }}>
+                    <Image src="/images/box1.svg" alt="Box" width={30} height={30} />
+                  </div>
+                </Col>
+
+                {/* Largo */}
+                <Col flex="0 0 auto">
+                  <div>
+                    <Text style={{ fontSize: 14, color: colors.gray[500], fontWeight: 500, display: 'block', marginBottom: 8 }}>
+                      Largo
+                    </Text>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <Text style={{ fontSize: 16, color: colors.gray[500] }}>{pkg.length}</Text>
+                      <Text style={{ fontSize: 14, color: colors.gray[300] }}>cm</Text>
+                    </div>
+                  </div>
+                </Col>
+
+                {/* Alto */}
+                <Col flex="0 0 auto">
+                  <div>
+                    <Text style={{ fontSize: 14, color: colors.gray[500], fontWeight: 500, display: 'block', marginBottom: 8 }}>
+                      Alto
+                    </Text>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <Text style={{ fontSize: 16, color: colors.gray[500] }}>{pkg.height}</Text>
+                      <Text style={{ fontSize: 14, color: colors.gray[300] }}>cm</Text>
+                    </div>
+                  </div>
+                </Col>
+
+                {/* Ancho */}
+                <Col flex="0 0 auto">
+                  <div>
+                    <Text style={{ fontSize: 14, color: colors.gray[500], fontWeight: 500, display: 'block', marginBottom: 8 }}>
+                      Ancho
+                    </Text>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <Text style={{ fontSize: 16, color: colors.gray[500] }}>{pkg.width}</Text>
+                      <Text style={{ fontSize: 14, color: colors.gray[300] }}>cm</Text>
+                    </div>
+                  </div>
+                </Col>
+
+                {/* Botón eliminar - solo icono */}
+                <Col flex="0 0 auto">
+                  <Button
+                    type="text"
+                    icon={<DeleteOutlined style={{ fontSize: 20, color: colors.error[500] }} />}
+                    onClick={() => handleRemovePackage(index)}
                     style={{
                       display: 'flex',
-                      justifyContent: 'center',
                       alignItems: 'center',
+                      justifyContent: 'center',
+                      padding: '8px',
                     }}
-                  >
-                    <Image src="/images/box1.svg" alt="Box" width={32} height={32} />
-                  </div>
-                </Col>
-                <Col xs={6} sm={2}>
-                  <Text style={{ fontSize: 12, color: colors.gray[500], fontWeight: 500 }}>Largo</Text>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <Text style={{ fontSize: 14 }}>{pkg.length}</Text>
-                    <Text style={{ fontSize: 12, color: colors.gray[300] }}>cm</Text>
-                  </div>
-                </Col>
-                <Col xs={6} sm={2}>
-                  <Text style={{ fontSize: 12, color: colors.gray[500], fontWeight: 500 }}>Alto</Text>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <Text style={{ fontSize: 14 }}>{pkg.height}</Text>
-                    <Text style={{ fontSize: 12, color: colors.gray[300] }}>cm</Text>
-                  </div>
-                </Col>
-                <Col xs={6} sm={2}>
-                  <Text style={{ fontSize: 12, color: colors.gray[500], fontWeight: 500 }}>Ancho</Text>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <Text style={{ fontSize: 14 }}>{pkg.width}</Text>
-                    <Text style={{ fontSize: 12, color: colors.gray[300] }}>cm</Text>
-                  </div>
-                </Col>
-                <Col xs={24} sm={2}>
-                  <Button
-                    danger
-                    icon={<DeleteOutlined />}
-                    onClick={() => handleRemovePackage(index)}
-                    style={{ width: '100%' }}
-                  >
-                    Eliminar
-                  </Button>
+                  />
                 </Col>
               </Row>
             </div>
