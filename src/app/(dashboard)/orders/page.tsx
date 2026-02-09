@@ -101,6 +101,24 @@ export default function OrdersPage() {
     }
   };
 
+  const handleDownloadPdf = async (orderId: string) => {
+    try {
+      const response = await api.get(`/orders/${orderId}/pdf`, {
+        responseType: 'blob',
+      });
+
+      const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+      window.open(url, '_blank');
+
+      // Limpiar el URL después de un tiempo
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url);
+      }, 100);
+    } catch (error) {
+      message.error('Error al abrir el PDF');
+    }
+  };
+
   const columns = [
     {
       title: '',
@@ -124,7 +142,14 @@ export default function OrdersPage() {
       title: 'No. de orden',
       dataIndex: 'id',
       key: 'id',
-      render: (id: string) => id.slice(-6).toUpperCase(),
+      render: (id: string) => (
+        <a
+          onClick={() => handleDownloadPdf(id)}
+          style={{ color: '#2e49ce', cursor: 'pointer', textDecoration: 'underline' }}
+        >
+          {id.slice(-6).toUpperCase()}
+        </a>
+      ),
     },
     {
       title: 'Nombre',
@@ -161,7 +186,7 @@ export default function OrdersPage() {
   return (
     <div>
       {/* Filters */}
-      <div style={{ marginBottom: 24 }}>
+      <div style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Space size="middle">
           <RangePicker
             placeholder={['Enero', 'Julio']}
@@ -178,17 +203,17 @@ export default function OrdersPage() {
           <Button onClick={handleExport} loading={exporting}>
             Descargar órdenes
           </Button>
-          {process.env.NODE_ENV === 'development' && (
-            <Button
-              onClick={handleSimulateDelivery}
-              loading={simulating}
-              disabled={selectedRowKeys.length === 0}
-              icon={<TruckOutlined />}
-            >
-              Simular entregas ({selectedRowKeys.length})
-            </Button>
-          )}
         </Space>
+        {process.env.NODE_ENV === 'development' && activeTab === 'pending' && (
+          <Button
+            onClick={handleSimulateDelivery}
+            loading={simulating}
+            disabled={selectedRowKeys.length === 0}
+            icon={<TruckOutlined />}
+          >
+            Simular entregas ({selectedRowKeys.length})
+          </Button>
+        )}
       </div>
 
       {/* Tabs */}
