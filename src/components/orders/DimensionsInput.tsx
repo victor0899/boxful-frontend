@@ -71,7 +71,8 @@ export default function DimensionsInput({
             <Text style={{ fontSize: 14, color: colors.gray[500] }}>{length}</Text>
           ) : (
             <InputNumber
-              min={1}
+              min={0.1}
+              step={0.1}
               value={length}
               onChange={(value) => {
                 onChange?.('length', value || 0);
@@ -102,7 +103,8 @@ export default function DimensionsInput({
             <Text style={{ fontSize: 14, color: colors.gray[500] }}>{height}</Text>
           ) : (
             <InputNumber
-              min={1}
+              min={0.1}
+              step={0.1}
               value={height}
               onChange={(value) => {
                 onChange?.('height', value || 0);
@@ -132,7 +134,8 @@ export default function DimensionsInput({
             <Text style={{ fontSize: 14, color: colors.gray[500] }}>{width}</Text>
           ) : (
             <InputNumber
-              min={1}
+              min={0.1}
+              step={0.1}
               value={width}
               onChange={(value) => {
                 onChange?.('width', value || 0);

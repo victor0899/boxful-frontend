@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react';
 import {
   Form,
   Input,
+  InputNumber,
   Button,
   Card,
   Typography,
@@ -30,6 +31,54 @@ import DimensionsInput from './DimensionsInput';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
+
+// Mapeo de errores del backend a mensajes amigables en español
+const translateBackendError = (error: string): string => {
+  const errorMappings: Record<string, string> = {
+    // Errores de peso
+    'weight must not be less than 0.1': 'El peso mínimo es 0.1 libras',
+    'weight must be a number': 'El peso debe ser un número válido',
+    // Errores de dimensiones
+    'height must not be less than 0.1': 'El alto mínimo es 0.1 cm',
+    'width must not be less than 0.1': 'El ancho mínimo es 0.1 cm',
+    'length must not be less than 0.1': 'El largo mínimo es 0.1 cm',
+    // Errores de cantidad
+    'quantity must not be less than 1': 'La cantidad mínima es 1',
+    'quantity must be a number': 'La cantidad debe ser un número válido',
+    // Errores de paquetes
+    'Debe haber al menos 1 paquete': 'Debe haber al menos 1 paquete',
+    'description should not be empty': 'La descripción no puede estar vacía',
+    'description must be a string': 'La descripción debe ser texto válido',
+    // Errores de fecha
+    'La fecha programada no puede ser anterior a hoy': 'La fecha programada no puede ser anterior a hoy',
+    'scheduledDate must be a valid ISO 8601 date string': 'La fecha programada no es válida',
+    // Errores de cliente
+    'clientEmail must be an email': 'El correo electrónico no es válido',
+    'firstName should not be empty': 'El nombre es requerido',
+    'lastName should not be empty': 'El apellido es requerido',
+    'phoneCode should not be empty': 'El código de teléfono es requerido',
+    'phoneNumber should not be empty': 'El número de teléfono es requerido',
+    'clientAddress should not be empty': 'La dirección del destinatario es requerida',
+    'clientDepartment should not be empty': 'El departamento es requerido',
+    'clientMunicipality should not be empty': 'El municipio es requerido',
+    'pickupAddress should not be empty': 'La dirección de recolección es requerida',
+  };
+
+  // Buscar coincidencia exacta
+  if (errorMappings[error]) {
+    return errorMappings[error];
+  }
+
+  // Buscar coincidencia parcial para errores con índices como "packages.0.weight must not be less than 0.1"
+  for (const [key, value] of Object.entries(errorMappings)) {
+    if (error.includes(key)) {
+      return value;
+    }
+  }
+
+  // Si no hay mapeo, devolver el error original
+  return error;
+};
 
 interface Package {
   length: number;
@@ -87,19 +136,19 @@ export default function OrderForm() {
   };
 
   const handleAddPackage = () => {
-    // Validar que el peso sea mayor a 0 si existe
-    if (currentPackage.weight !== undefined && currentPackage.weight <= 0) {
+    // Validar que el peso sea mayor o igual a 0.1
+    if (currentPackage.weight !== undefined && currentPackage.weight < 0.1) {
       setPackageErrors({ ...packageErrors, weight: true });
-      message.error('El peso debe ser mayor a 0');
+      message.error('El peso mínimo es 0.1 libras');
       return;
     }
 
     // Validar y marcar errores de campos vacíos
     const errors: Record<string, boolean> = {
-      length: !currentPackage.length || currentPackage.length <= 0,
-      height: !currentPackage.height || currentPackage.height <= 0,
-      width: !currentPackage.width || currentPackage.width <= 0,
-      weight: !currentPackage.weight,
+      length: !currentPackage.length || currentPackage.length < 0.1,
+      height: !currentPackage.height || currentPackage.height < 0.1,
+      width: !currentPackage.width || currentPackage.width < 0.1,
+      weight: !currentPackage.weight || currentPackage.weight < 0.1,
       description: !currentPackage.description,
     };
 
@@ -107,7 +156,7 @@ export default function OrderForm() {
 
     if (hasErrors) {
       setPackageErrors(errors);
-      message.error('Por favor completa todos los campos del producto');
+      message.error('Por favor completa todos los campos del producto (mínimo 0.1 para peso y dimensiones)');
       return;
     }
 
@@ -192,10 +241,17 @@ export default function OrderForm() {
     } catch (error) {
       const axiosError = error as AxiosError<{ message?: string | string[] }>;
       if (axiosError.response?.data?.message) {
-        const msg = Array.isArray(axiosError.response.data.message)
-          ? axiosError.response.data.message.join(', ')
-          : axiosError.response.data.message;
-        message.error(msg);
+        const backendMessages = Array.isArray(axiosError.response.data.message)
+          ? axiosError.response.data.message
+          : [axiosError.response.data.message];
+
+        // Traducir cada mensaje a español
+        const translatedMessages = backendMessages.map(translateBackendError);
+
+        // Mostrar todos los mensajes traducidos
+        translatedMessages.forEach((msg) => message.error(msg));
+      } else {
+        message.error('Error al crear la orden. Por favor intenta nuevamente.');
       }
     } finally {
       setLoading(false);
@@ -576,13 +632,16 @@ export default function OrderForm() {
                   <Text style={{ fontSize: 12, color: colors.gray[500], fontWeight: 500 }}>
                     Peso en libras
                   </Text>
-                  <Input
+                  <InputNumber
+                    min={0.1}
+                    step={0.1}
                     status={packageErrors.weight ? 'error' : ''}
                     value={currentPackage.weight}
-                    onChange={(e) => {
-                      setCurrentPackage({ ...currentPackage, weight: parseFloat(e.target.value) || 0 });
+                    onChange={(value) => {
+                      setCurrentPackage({ ...currentPackage, weight: value || 0 });
                       setPackageErrors({ ...packageErrors, weight: false });
                     }}
+                    style={{ width: '100%' }}
                   />
                 </div>
               </Col>
@@ -642,12 +701,14 @@ export default function OrderForm() {
                         Peso en libras
                       </Text>
                       {isEditing ? (
-                        <Input
-                          type="number"
+                        <InputNumber
+                          min={0.1}
+                          step={0.1}
                           value={displayPkg.weight}
-                          onChange={(e) =>
-                            setEditingPackage({ ...editingPackage, weight: parseFloat(e.target.value) || 0 })
+                          onChange={(value) =>
+                            setEditingPackage({ ...editingPackage, weight: value || 0 })
                           }
+                          style={{ width: '100%' }}
                         />
                       ) : (
                         <Input value={`${pkg.weight} libras`} readOnly style={{ cursor: 'default' }} />
