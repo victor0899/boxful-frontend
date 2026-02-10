@@ -332,7 +332,7 @@ export default function OrdersPage() {
             </Button>
           </Dropdown>
         </Space>
-        {process.env.NODE_ENV === 'development' && activeTab === 'pending' && (
+        {activeTab === 'pending' && (
           <Button
             onClick={handleSimulateDelivery}
             loading={simulating}
