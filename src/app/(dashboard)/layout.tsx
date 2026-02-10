@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Spin, App } from 'antd';
 import { useAuth } from '@/lib/auth-context';
@@ -12,6 +12,7 @@ import Footer from '@/components/layout/Footer';
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -31,9 +32,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <App>
       <BalanceProvider>
         <div style={{ display: 'flex', minHeight: '100vh' }}>
-          <Sidebar />
+          <Sidebar drawerOpen={drawerOpen} onDrawerClose={() => setDrawerOpen(false)} />
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-            <Header />
+            <Header onMenuClick={() => setDrawerOpen(true)} />
             <div style={{ flex: 1, padding: 24, background: '#f5f5f5' }}>
               <div style={{ background: '#fff', padding: 24, borderRadius: 8, minHeight: '100%' }}>
                 {children}

@@ -1,27 +1,37 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
-import { Layout } from 'antd';
+import { Layout, Drawer, Typography } from 'antd';
 import Image from 'next/image';
 import {
   PlusOutlined,
   FileSearchOutlined,
+  WalletOutlined,
 } from '@ant-design/icons';
+import { useBalance } from '@/lib/balance-context';
 import { colors } from '@/lib/theme';
 
 const { Sider } = Layout;
+const { Text } = Typography;
 
-export default function Sidebar() {
+interface SidebarProps {
+  drawerOpen: boolean;
+  onDrawerClose: () => void;
+}
+
+export default function Sidebar({ drawerOpen, onDrawerClose }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const { balance } = useBalance();
 
-  return (
-    <Sider
-      width={304}
-      breakpoint="lg"
-      collapsedWidth={0}
-      style={{ background: '#f8f9fa' }}
-    >
+  const handleNavigation = (path: string) => {
+    router.push(path);
+    onDrawerClose(); // Cerrar drawer después de navegar
+  };
+
+  // Contenido del menú reutilizable
+  const MenuContent = ({ showBalance = false }: { showBalance?: boolean }) => (
+    <>
       <div
         style={{
           padding: '0 40px',
@@ -35,6 +45,27 @@ export default function Sidebar() {
           priority
         />
       </div>
+
+      {/* Balance - solo visible en el drawer móvil */}
+      {showBalance && (
+        <div
+          style={{
+            margin: '16px 40px',
+            padding: '12px 16px',
+            backgroundColor: colors.darkGreen[50],
+            borderRadius: 8,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+          }}
+        >
+          <WalletOutlined style={{ fontSize: 16, color: colors.darkGreen[500] }} />
+          <Text style={{ fontSize: 14, color: colors.darkGreen[500], fontWeight: 500 }}>
+            Monto a liquidar ${balance.toFixed(2)}
+          </Text>
+        </div>
+      )}
+
       <div
         style={{
           padding: '0 40px 16px 40px',
@@ -47,7 +78,7 @@ export default function Sidebar() {
       </div>
       <div style={{ padding: '0 40px', display: 'flex', flexDirection: 'column', gap: 8 }}>
         <div
-          onClick={() => router.push('/orders/create')}
+          onClick={() => handleNavigation('/orders/create')}
           style={{
             height: 56,
             fontSize: 16,
@@ -77,7 +108,7 @@ export default function Sidebar() {
           <span>Crear orden</span>
         </div>
         <div
-          onClick={() => router.push('/orders')}
+          onClick={() => handleNavigation('/orders')}
           style={{
             height: 56,
             fontSize: 16,
@@ -107,6 +138,33 @@ export default function Sidebar() {
           <span>Historial</span>
         </div>
       </div>
-    </Sider>
+    </>
+  );
+
+  return (
+    <>
+      {/* Sider para desktop */}
+      <Sider
+        width={304}
+        breakpoint="lg"
+        collapsedWidth={0}
+        trigger={null}
+        style={{ background: '#f8f9fa' }}
+      >
+        <MenuContent />
+      </Sider>
+
+      {/* Drawer para móviles/tablets */}
+      <Drawer
+        title={null}
+        placement="left"
+        onClose={onDrawerClose}
+        open={drawerOpen}
+        width={304}
+        styles={{ body: { padding: 0, background: '#f8f9fa' } }}
+      >
+        <MenuContent showBalance={true} />
+      </Drawer>
+    </>
   );
 }
