@@ -13,7 +13,6 @@ import {
   Select,
   App,
   Switch,
-  InputNumber,
   Modal,
   Tooltip,
 } from 'antd';

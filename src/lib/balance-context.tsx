@@ -20,7 +20,7 @@ export function BalanceProvider({ children }: { children: React.ReactNode }) {
     try {
       const { data } = await api.get<{ balance: number }>('/orders/settlement-balance');
       setBalance(data.balance);
-    } catch (error) {
+    } catch {
       // Si el endpoint no existe aún, el balance es 0
       setBalance(0);
     } finally {

@@ -2,6 +2,7 @@
 
 import { useEffect, useCallback, useRef, useState } from 'react';
 import { Button, Space, DatePicker, Table, Checkbox, App, Tabs, Dropdown } from 'antd';
+import type { TablePaginationConfig, SorterResult } from 'antd/es/table/interface';
 import { CalendarOutlined, ClockCircleOutlined, CheckCircleOutlined, TruckOutlined, DownloadOutlined } from '@ant-design/icons';
 import { useOrders } from '@/hooks/useOrders';
 import { useBalance } from '@/lib/balance-context';
@@ -62,8 +63,9 @@ export default function OrdersPage() {
   }, [dateRange, activeTab, sortField, sortOrder, fetchOrders]);
 
   const handleTableChange = useCallback(
-    (pagination: any, filters: any, sorter: any) => {
-      console.log('handleTableChange called:', { pagination, filters, sorter });
+    (pagination: TablePaginationConfig, _filters: Record<string, unknown>, sorter: SorterResult<Order> | SorterResult<Order>[]) => {
+      // Manejar sorter único (no array)
+      const singleSorter = Array.isArray(sorter) ? sorter[0] : sorter;
 
       const status = activeTab === 'pending'
         ? 'PENDING,IN_TRANSIT,CANCELLED'
@@ -76,9 +78,9 @@ export default function OrdersPage() {
       };
 
       // Agregar ordenamiento si existe
-      if (sorter.field && sorter.order) {
-        setSortField(sorter.field);
-        setSortOrder(sorter.order);
+      if (singleSorter?.field && singleSorter?.order) {
+        setSortField(String(singleSorter.field));
+        setSortOrder(singleSorter.order);
 
         // Mapear keys del frontend a campos del backend
         const fieldMap: Record<string, string> = {
@@ -88,9 +90,9 @@ export default function OrdersPage() {
           clientMunicipality: 'clientMunicipality',
         };
 
-        const backendField = fieldMap[sorter.field] || sorter.field;
+        const backendField = fieldMap[singleSorter.field as string] || (singleSorter.field as string);
         queryParams.sortBy = backendField;
-        queryParams.sortOrder = sorter.order === 'ascend' ? 'asc' : 'desc';
+        queryParams.sortOrder = singleSorter.order === 'ascend' ? 'asc' : 'desc';
 
         console.log('Sorting params:', { sortBy: backendField, sortOrder: queryParams.sortOrder });
       } else {
@@ -157,7 +159,7 @@ export default function OrdersPage() {
 
       const count = selectedRowKeys.length > 0 ? selectedRowKeys.length : 'todas las';
       message.success(`${count} orden(es) exportadas en formato ${format.toUpperCase()}`);
-    } catch (error) {
+    } catch {
       message.error('Error al exportar órdenes');
     } finally {
       setExporting(false);
@@ -194,7 +196,7 @@ export default function OrdersPage() {
       fetchOrders({ status });
       // Refrescar el balance en el header
       refetchBalance();
-    } catch (error) {
+    } catch {
       message.error('Error al simular entregas');
     } finally {
       setSimulating(false);
@@ -214,7 +216,7 @@ export default function OrdersPage() {
       setTimeout(() => {
         window.URL.revokeObjectURL(url);
       }, 100);
-    } catch (error) {
+    } catch {
       message.error('Error al abrir el PDF');
     }
   };
