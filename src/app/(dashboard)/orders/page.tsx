@@ -79,6 +79,12 @@ export default function OrdersPage() {
         status,
       };
 
+      // Mantener filtros de fecha si existen
+      if (dateRange && dateRange[0] && dateRange[1]) {
+        queryParams.fromDate = dateRange[0].format('YYYY-MM-DD');
+        queryParams.toDate = dateRange[1].format('YYYY-MM-DD');
+      }
+
       // Agregar ordenamiento si existe
       if (singleSorter?.field && singleSorter?.order) {
         setSortField(String(singleSorter.field));
@@ -102,7 +108,7 @@ export default function OrdersPage() {
 
       fetchOrders(queryParams);
     },
-    [activeTab, fetchOrders],
+    [activeTab, dateRange, fetchOrders],
   );
 
   const handleExport = async (format: 'csv' | 'excel') => {
