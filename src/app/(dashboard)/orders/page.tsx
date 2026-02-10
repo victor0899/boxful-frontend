@@ -307,7 +307,7 @@ export default function OrdersPage() {
       key: 'firstName',
       render: (name: string) => name.split(' ')[0] || '',
       sorter: true,
-      sortOrder: sortField === 'firstName' ? sortOrder : null,
+      sortDirections: ['ascend' as const, 'descend' as const, 'ascend' as const],
     },
     {
       title: 'Apellidos',
@@ -315,21 +315,21 @@ export default function OrdersPage() {
       key: 'lastName',
       render: (name: string) => name.split(' ').slice(1).join(' ') || '',
       sorter: true,
-      sortOrder: sortField === 'lastName' ? sortOrder : null,
+      sortDirections: ['ascend' as const, 'descend' as const, 'ascend' as const],
     },
     {
       title: 'Departamento',
       dataIndex: 'clientDepartment',
       key: 'clientDepartment',
       sorter: true,
-      sortOrder: sortField === 'clientDepartment' ? sortOrder : null,
+      sortDirections: ['ascend' as const, 'descend' as const, 'ascend' as const],
     },
     {
       title: 'Municipio',
       dataIndex: 'clientMunicipality',
       key: 'clientMunicipality',
       sorter: true,
-      sortOrder: sortField === 'clientMunicipality' ? sortOrder : null,
+      sortDirections: ['ascend' as const, 'descend' as const, 'ascend' as const],
     },
     {
       title: 'Paquetes en orden',
@@ -352,10 +352,24 @@ export default function OrdersPage() {
             format="MMMM YYYY"
             picker="month"
             value={dateRange}
-            onChange={(dates) => setDateRange(dates)}
+            onChange={(dates) => {
+              setDateRange(dates);
+              // Si se limpió, recargar sin filtros de fecha
+              if (!dates) {
+                const status = activeTab === 'pending'
+                  ? 'PENDING,IN_TRANSIT,CANCELLED'
+                  : 'DELIVERED';
+                fetchOrders({ status });
+              }
+            }}
             style={{ width: 280 }}
           />
-          <Button type="primary" onClick={handleSearch} loading={loading}>
+          <Button
+            type="primary"
+            onClick={handleSearch}
+            loading={loading}
+            disabled={!dateRange || !dateRange[0] || !dateRange[1]}
+          >
             Buscar
           </Button>
           <Dropdown
