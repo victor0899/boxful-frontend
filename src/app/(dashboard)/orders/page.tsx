@@ -437,7 +437,6 @@ export default function OrdersPage() {
                   current: meta.page,
                   pageSize: meta.limit,
                   total: meta.total,
-                  showSizeChanger: true,
                   showTotal: (total) => `Total ${total} órdenes`,
                 }}
                 style={{
@@ -464,7 +463,6 @@ export default function OrdersPage() {
                   current: meta.page,
                   pageSize: meta.limit,
                   total: meta.total,
-                  showSizeChanger: true,
                   showTotal: (total) => `Total ${total} órdenes`,
                 }}
                 style={{
