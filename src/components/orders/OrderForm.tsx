@@ -634,7 +634,7 @@ export default function OrderForm() {
                   backgroundColor: 'transparent',
                 }}
               >
-                <Row gutter={[16, 16]} align="middle">
+                <Row gutter={[16, 16]} align="top">
                   {/* Peso en libras */}
                   <Col xs={24} sm={12} md={8} lg={8} xl={6}>
                     <div>
@@ -656,7 +656,7 @@ export default function OrderForm() {
                   </Col>
 
                   {/* Contenido */}
-                  <Col xs={24} sm={12} md={16} lg={16} xl={10}>
+                  <Col xs={24} sm={12} md={16} lg={16} xl={8}>
                     <div>
                       <Text style={{ fontSize: 14, color: colors.gray[500], fontWeight: 500, display: 'block', marginBottom: 8 }}>
                         Contenido
@@ -694,8 +694,13 @@ export default function OrderForm() {
                   </Col>
 
                   {/* Botones - cambian según el modo */}
-                  <Col xs={24} style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginLeft: 'auto' }}>
-                    {isEditing ? (
+                  <Col xs={24} sm={24} md={24} lg={24} xl={4}>
+                    <div>
+                      <Text style={{ fontSize: 14, color: 'transparent', fontWeight: 500, display: 'block', userSelect: 'none' }}>
+                        &nbsp;
+                      </Text>
+                      <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', height: 48 }}>
+                        {isEditing ? (
                       <>
                         <Button
                           onClick={() => handleSaveEdit(index)}
@@ -712,29 +717,37 @@ export default function OrderForm() {
                     ) : (
                       <>
                         <Button
-                          type="text"
-                          icon={<EditOutlined style={{ fontSize: 20, color: colors.blue[500] }} />}
+                          type="default"
+                          icon={<EditOutlined style={{ fontSize: 18, color: colors.blue[500] }} />}
                           onClick={() => handleEditPackage(index)}
                           style={{
+                            background: '#fff',
+                            borderColor: '#d9d9d9',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            padding: '8px',
+                            height: 48,
+                            width: 48,
                           }}
                         />
                         <Button
-                          type="text"
-                          icon={<DeleteOutlined style={{ fontSize: 20, color: colors.error[500] }} />}
+                          type="default"
+                          icon={<DeleteOutlined style={{ fontSize: 18, color: colors.error[500] }} />}
                           onClick={() => handleRemovePackage(index)}
                           style={{
+                            background: '#fff',
+                            borderColor: '#d9d9d9',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            padding: '8px',
+                            height: 48,
+                            width: 48,
                           }}
                         />
                       </>
                     )}
+                      </div>
+                    </div>
                   </Col>
                 </Row>
               </div>
