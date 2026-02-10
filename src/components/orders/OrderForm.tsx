@@ -335,7 +335,7 @@ export default function OrderForm() {
                   }
                   options={departments.map((dept) => ({
                     value: dept.isoCode,
-                    label: dept.name,
+                    label: dept.name.replace(/ Department$/i, ''),
                   }))}
                 />
               </Form.Item>
@@ -355,8 +355,8 @@ export default function OrderForm() {
                     (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
                   }
                   options={municipalities.map((city) => ({
-                    value: city.name,
-                    label: city.name,
+                    value: city.name.replace(/ Department$/i, ''),
+                    label: city.name.replace(/ Department$/i, ''),
                   }))}
                 />
               </Form.Item>
