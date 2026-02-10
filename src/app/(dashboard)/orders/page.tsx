@@ -205,7 +205,7 @@ export default function OrdersPage() {
       });
 
       const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
-      window.open(url, '_blank');
+      const newWindow = window.open(url, '_blank');
 
       // Limpiar el URL después de un tiempo
       setTimeout(() => {
@@ -213,7 +213,16 @@ export default function OrdersPage() {
       }, 100);
 
       hide();
-      message.success('PDF generado correctamente');
+
+      // Detectar si fue bloqueado por el navegador
+      if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+        message.warning({
+          content: 'PDF generado. Si no se abrió, permite ventanas emergentes en tu navegador y vuelve a intentar.',
+          duration: 6,
+        });
+      } else {
+        message.success('PDF generado correctamente');
+      }
     } catch {
       hide();
       message.error('Error al abrir el PDF');
