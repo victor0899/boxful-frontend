@@ -512,7 +512,7 @@ export default function OrderForm() {
               </Col>
 
               {/* Dimensiones agrupadas */}
-              <Col xs={24} sm={9}>
+              <Col xs={24} md={9}>
                 <DimensionsInput
                   length={currentPackage.length}
                   height={currentPackage.height}
@@ -520,13 +520,13 @@ export default function OrderForm() {
                   onChange={(dimension, value) => setCurrentPackage({ ...currentPackage, [dimension]: value })}
                 />
               </Col>
-              <Col xs={12} sm={4}>
+              <Col xs={24} md={4}>
                 <div>
                   <Text style={{ fontSize: 12, color: colors.gray[500], fontWeight: 500 }}>
                     Peso en libras
                   </Text>
                   <Input
-                    
+
                     value={currentPackage.weight}
                     onChange={(e) =>
                       setCurrentPackage({ ...currentPackage, weight: parseFloat(e.target.value) || 0 })

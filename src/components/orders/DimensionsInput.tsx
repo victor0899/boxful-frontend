@@ -68,7 +68,7 @@ export default function DimensionsInput({
               onChange={(value) => onChange?.('length', value || 0)}
               controls={false}
               variant="borderless"
-              style={{ width: 40, padding: 0 }}
+              style={{ width: 55, padding: 0 }}
             />
           )}
           <Text className="dimension-unit" style={{ fontSize: 12, color: colors.gray[300] }}>cm</Text>
@@ -96,7 +96,7 @@ export default function DimensionsInput({
               onChange={(value) => onChange?.('height', value || 0)}
               controls={false}
               variant="borderless"
-              style={{ width: 40, padding: 0 }}
+              style={{ width: 55, padding: 0 }}
             />
           )}
           <Text className="dimension-unit" style={{ fontSize: 12, color: colors.gray[300] }}>cm</Text>
@@ -123,7 +123,7 @@ export default function DimensionsInput({
               onChange={(value) => onChange?.('width', value || 0)}
               controls={false}
               variant="borderless"
-              style={{ width: 40, padding: 0 }}
+              style={{ width: 55, padding: 0 }}
             />
           )}
           <Text className="dimension-unit" style={{ fontSize: 12, color: colors.gray[300] }}>cm</Text>
