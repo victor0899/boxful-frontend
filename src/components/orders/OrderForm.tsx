@@ -79,7 +79,7 @@ export default function OrderForm() {
       // Guardar los valores del paso 1
       setStep1Data(values);
       setCurrentStep(1);
-    } catch (error) {
+    } catch {
       message.error('Por favor completa todos los campos requeridos');
     }
   };
