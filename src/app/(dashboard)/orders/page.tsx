@@ -343,7 +343,7 @@ export default function OrdersPage() {
           <RangePicker
             placeholder={['Enero', 'Julio']}
             suffixIcon={<CalendarOutlined />}
-            format="MMMM"
+            format="MMMM YYYY"
             picker="month"
             value={dateRange}
             onChange={(dates) => setDateRange(dates)}
