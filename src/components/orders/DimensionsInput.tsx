@@ -48,6 +48,7 @@ export default function DimensionsInput({
       >
         {/* Largo */}
         <div
+          className="dimension-item"
           style={{
             flex: 1,
             display: 'flex',
@@ -70,11 +71,12 @@ export default function DimensionsInput({
               style={{ width: 40, padding: 0 }}
             />
           )}
-          <Text style={{ fontSize: 12, color: colors.gray[300] }}>cm</Text>
+          <Text className="dimension-unit" style={{ fontSize: 12, color: colors.gray[300] }}>cm</Text>
         </div>
 
         {/* Alto */}
         <div
+          className="dimension-item"
           style={{
             flex: 1,
             display: 'flex',
@@ -97,11 +99,12 @@ export default function DimensionsInput({
               style={{ width: 40, padding: 0 }}
             />
           )}
-          <Text style={{ fontSize: 12, color: colors.gray[300] }}>cm</Text>
+          <Text className="dimension-unit" style={{ fontSize: 12, color: colors.gray[300] }}>cm</Text>
         </div>
 
         {/* Ancho */}
         <div
+          className="dimension-item"
           style={{
             flex: 1,
             display: 'flex',
@@ -123,7 +126,7 @@ export default function DimensionsInput({
               style={{ width: 40, padding: 0 }}
             />
           )}
-          <Text style={{ fontSize: 12, color: colors.gray[300] }}>cm</Text>
+          <Text className="dimension-unit" style={{ fontSize: 12, color: colors.gray[300] }}>cm</Text>
         </div>
       </div>
     </div>

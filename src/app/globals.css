@@ -18,3 +18,51 @@ body {
   height: 100%;
   font-family: 'Mona Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
+
+/* Mobile menu button - only visible on tablets and mobile */
+@media (max-width: 991px) {
+  .mobile-menu-button {
+    display: inline-flex !important;
+  }
+
+  /* Hide page title on mobile */
+  .page-title {
+    display: none !important;
+  }
+
+  /* Hide balance on mobile (shown in drawer instead) */
+  .balance-desktop {
+    display: none !important;
+  }
+
+  /* Show logo in center on mobile */
+  .mobile-logo {
+    display: flex !important;
+  }
+
+  /* Order form mobile navigation */
+  .mobile-back-chevron {
+    display: inline-block !important;
+  }
+
+  .desktop-back-button {
+    display: none !important;
+  }
+
+  .submit-button {
+    width: 100% !important;
+  }
+}
+
+/* Dimensions input - stack number and unit vertically on tablets and mobile, horizontal only on desktop */
+@media (max-width: 991px) {
+  .dimension-item {
+    flex-direction: column !important;
+    justify-content: center !important;
+    padding: 4px 8px !important;
+  }
+
+  .dimension-unit {
+    margin-top: 2px !important;
+  }
+}

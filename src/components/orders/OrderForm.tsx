@@ -16,7 +16,7 @@ import {
   Modal,
   Tooltip,
 } from 'antd';
-import { ArrowRightOutlined, ArrowLeftOutlined, PlusOutlined, DeleteOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import { ArrowRightOutlined, ArrowLeftOutlined, LeftOutlined, PlusOutlined, DeleteOutlined, EditOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { State, City } from 'country-state-city';
@@ -45,6 +45,7 @@ export default function OrderForm() {
   const [loading, setLoading] = useState(false);
   const [packages, setPackages] = useState<Package[]>([]);
   const [currentPackage, setCurrentPackage] = useState<Partial<Package>>({});
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [step1Data, setStep1Data] = useState<Record<string, unknown>>({});
   const [selectedDepartment, setSelectedDepartment] = useState<string | null>(null);
   const [phoneDialCode, setPhoneDialCode] = useState<string>('503');
@@ -95,8 +96,24 @@ export default function OrderForm() {
       return;
     }
 
-    setPackages([...packages, currentPackage as Package]);
+    if (editingIndex !== null) {
+      // Actualizar paquete existente
+      const updatedPackages = [...packages];
+      updatedPackages[editingIndex] = currentPackage as Package;
+      setPackages(updatedPackages);
+      setEditingIndex(null);
+      message.success('Producto actualizado');
+    } else {
+      // Agregar nuevo paquete
+      setPackages([...packages, currentPackage as Package]);
+    }
+
     setCurrentPackage({});
+  };
+
+  const handleEditPackage = (index: number) => {
+    setCurrentPackage(packages[index]);
+    setEditingIndex(index);
   };
 
   const handleRemovePackage = (index: number) => {
@@ -452,9 +469,25 @@ export default function OrderForm() {
       {/* Step 2: Add products */}
       {currentStep === 1 && (
         <Card>
-          <Title level={4} style={{ marginBottom: 24, color: colors.gray[500], fontWeight: 600 }}>
-            Agrega tus productos
-          </Title>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
+            {/* Chevron - solo visible en móviles */}
+            <LeftOutlined
+              onClick={() => setCurrentStep(0)}
+              className="mobile-back-chevron"
+              style={{
+                fontSize: 18,
+                color: colors.blue.dark,
+                cursor: 'pointer',
+                transition: 'color 0.2s',
+                display: 'none',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = colors.blue[500])}
+              onMouseLeave={(e) => (e.currentTarget.style.color = colors.blue.dark)}
+            />
+            <Title level={4} style={{ margin: 0, color: colors.gray[500], fontWeight: 600 }}>
+              Agrega tus productos
+            </Title>
+          </div>
 
           {/* Add product form */}
           <div
@@ -511,10 +544,23 @@ export default function OrderForm() {
                   />
                 </div>
               </Col>
-              <Col xs={24} style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 16 }}>
+              <Col xs={24} style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 16, gap: 8 }}>
+                {editingIndex !== null && (
+                  <Button
+                    onClick={() => {
+                      setCurrentPackage({});
+                      setEditingIndex(null);
+                    }}
+                    style={{
+                      color: colors.gray[500],
+                    }}
+                  >
+                    Cancelar
+                  </Button>
+                )}
                 <Button
                   type="default"
-                  icon={<PlusOutlined />}
+                  icon={editingIndex !== null ? <EditOutlined /> : <PlusOutlined />}
                   iconPosition="end"
                   onClick={handleAddPackage}
                   style={{
@@ -524,7 +570,7 @@ export default function OrderForm() {
                     borderColor: '#d9d9d9',
                   }}
                 >
-                  Agregar
+                  {editingIndex !== null ? 'Actualizar' : 'Agregar'}
                 </Button>
               </Col>
             </Row>
@@ -542,9 +588,9 @@ export default function OrderForm() {
                 backgroundColor: 'transparent',
               }}
             >
-              <Row gutter={24} align="middle">
+              <Row gutter={[16, 16]} align="middle">
                 {/* Peso en libras */}
-                <Col flex="0 0 180px">
+                <Col xs={24} sm={12} md={8} lg={8} xl={6}>
                   <div>
                     <Text style={{ fontSize: 14, color: colors.gray[500], fontWeight: 500, display: 'block', marginBottom: 8 }}>
                       Peso en libras
@@ -554,7 +600,7 @@ export default function OrderForm() {
                 </Col>
 
                 {/* Contenido */}
-                <Col flex="1 1 auto">
+                <Col xs={24} sm={12} md={16} lg={16} xl={10}>
                   <div>
                     <Text style={{ fontSize: 14, color: colors.gray[500], fontWeight: 500, display: 'block', marginBottom: 8 }}>
                       Contenido
@@ -563,15 +609,13 @@ export default function OrderForm() {
                   </div>
                 </Col>
 
-                {/* Icono de caja */}
-                <Col flex="0 0 auto">
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 16px' }}>
-                    <Image src="/images/box1.svg" alt="Box" width={30} height={30} />
-                  </div>
+                {/* Icono de caja - solo visible en pantallas grandes */}
+                <Col xs={0} xl={1} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Image src="/images/box1.svg" alt="Box" width={30} height={30} />
                 </Col>
 
                 {/* Dimensiones en modo readonly */}
-                <Col flex="0 0 auto">
+                <Col xs={24} sm={16} md={12} lg={12} xl={5}>
                   <DimensionsInput
                     length={pkg.length}
                     height={pkg.height}
@@ -580,8 +624,19 @@ export default function OrderForm() {
                   />
                 </Col>
 
-                {/* Botón eliminar - solo icono */}
-                <Col flex="0 0 auto">
+                {/* Botones editar y eliminar - siempre a la derecha */}
+                <Col xs={24} style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginLeft: 'auto' }}>
+                  <Button
+                    type="text"
+                    icon={<EditOutlined style={{ fontSize: 20, color: colors.blue[500] }} />}
+                    onClick={() => handleEditPackage(index)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      padding: '8px',
+                    }}
+                  />
                   <Button
                     type="text"
                     icon={<DeleteOutlined style={{ fontSize: 20, color: colors.error[500] }} />}
@@ -600,7 +655,9 @@ export default function OrderForm() {
 
           {/* Navigation buttons */}
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 32 }}>
+            {/* Botón Regresar - oculto en móviles */}
             <Button
+              className="desktop-back-button"
               size="large"
               onClick={() => setCurrentStep(0)}
               icon={<ArrowLeftOutlined />}
@@ -608,7 +665,9 @@ export default function OrderForm() {
             >
               Regresar
             </Button>
+            {/* Botón Enviar */}
             <Button
+              className="submit-button"
               type="primary"
               size="large"
               loading={loading}
