@@ -1,118 +1,90 @@
 # Boxful Frontend
 
-Interfaz web para el sistema de gestión de órdenes de envío de Boxful.
+Aplicación web para gestión de órdenes de envío desarrollada con Next.js 15, Ant Design 5 y TypeScript.
 
-## Stack Tecnológico
+## Stack
 
-| Tecnología | Versión | Justificación |
-|-----------|---------|---------------|
-| **Next.js** | 15.3.x | App Router estable, caching opt-in, soporte React 19, Turbopack estable para dev |
-| **Ant Design** | 5.29.x | Versión madura con documentación extensa y track record probado en producción |
-| **TypeScript** | 5.x | Type safety end-to-end, mejor DX con autocompletado |
-| **pnpm** | 10.x | Resolución estricta de dependencias, 3x más rápido que npm |
-
-## Estructura del Proyecto
-
-```
-src/
-  app/
-    (auth)/
-      login/page.tsx         -> Inicio de sesión
-      register/page.tsx      -> Registro
-      layout.tsx             -> Layout auth (split imagen + form)
-    (dashboard)/
-      orders/
-        page.tsx             -> Historial de órdenes
-        create/page.tsx      -> Crear nueva orden
-      layout.tsx             -> Layout dashboard (sidebar + header)
-    layout.tsx               -> Root layout (Ant ConfigProvider)
-    page.tsx                 -> Redirect según autenticación
-  components/
-    auth/                    -> Formularios de login y registro
-    orders/                  -> Tabla, filtros, formulario de órdenes
-    layout/                  -> Sidebar y Header
-  lib/
-    api.ts                   -> Cliente Axios con interceptor JWT
-    auth-context.tsx         -> Context provider de autenticación
-  hooks/
-    useOrders.ts             -> Hook para gestión de órdenes
-  types/
-    index.ts                 -> Interfaces TypeScript
-```
+- Next.js 15.3 (App Router) + Ant Design 5.29
+- TypeScript 5 (strict mode)
+- Axios con interceptor JWT
+- pnpm 10
 
 ## Instalación
 
 ```bash
-# Clonar repositorio
 git clone https://github.com/victor0899/boxful-frontend.git
 cd boxful-frontend
-
-# Instalar dependencias
 pnpm install
 
-# Configurar variables de entorno
-cp .env.example .env.local
-# Editar .env.local con la URL de tu API
+# Configurar .env.local
+NEXT_PUBLIC_API_URL=http://localhost:3001/api
 
-# Iniciar en desarrollo
 pnpm run dev
 ```
 
-## Variables de Entorno
+Requiere el backend corriendo. Ver [boxful-backend](https://github.com/victor0899/boxful-backend).
 
-```env
-NEXT_PUBLIC_API_URL=http://localhost:3001/api
-```
+Credenciales de prueba: `test@boxful.com` / `password123`
 
-## Vistas
+## Requerimientos Implementados
 
-### 1. Login
-- Formulario con email y contraseña
-- Validaciones con Ant Design Form rules
-- Redirect a /orders tras login exitoso
+**Autenticación**
+- Login con email y contraseña
+- Registro con 8 campos y verificación por email (código de 6 dígitos)
+- JWT en cookie HttpOnly con interceptor Axios
 
-### 2. Registro
-- Formulario con nombre, email, contraseña y confirmación
-- Validación de contraseñas coincidentes
+**Crear Orden (Multi-paso)**
+- Paso 1: Datos completos del destinatario (dirección recolección, fecha programada, nombres, apellidos, email, teléfono, dirección destino, departamento, municipio)
+- Paso 2: Gestión dinámica de paquetes (agregar, editar, eliminar)
+- Toggle COD con campo de monto esperado
+- Validación por paso
 
-### 3-4. Crear Orden (Multi-sección)
-- **Sección 1**: Datos del destinatario (nombre, teléfono, dirección, departamento, municipio)
-- **Sección 2**: Paquetes dinámicos (agregar/eliminar) + opción COD con monto
-- Navegación con Steps de Ant Design
-- Validación por sección antes de avanzar
+**Historial de Órdenes**
+- Tabla con ordenamiento descendente por fecha
+- Paginación server-side
+- Filtros: búsqueda, estado, rango de fechas, solo COD
+- Exportación a CSV
+- Tags de colores por estado
 
-### 5. Historial de Órdenes
-- Tabla con paginación server-side
-- Filtros: estado, rango de fechas, búsqueda por cliente, solo COD
-- Tags de colores para estados (Pendiente=azul, En tránsito=naranja, Entregado=verde, Cancelado=rojo)
-- Badges COD con monto esperado
-- Columnas de costo de envío y liquidación
-- Botón exportar CSV
-- Ordenamiento descendente por fecha de creación
+**Backend**
+- MongoDB para almacenar órdenes
+- Filtros en búsquedas de base de datos
+
+## Punto Extra Implementado (Módulo de Liquidación)
+
+**1. COD (Cash on Delivery)**
+- Toggle en formulario para habilitar pago contra entrega
+- Campo de monto esperado
+- Badge morado en tabla con monto
+- Soporte para diferencias entre monto esperado y recolectado
+
+**2. Webhook de Entrega**
+- Endpoint: `POST /webhooks/delivery-status`
+- Botón "Simular entrega" para testing
+- Actualiza estado a DELIVERED y recalcula balance
+- Recibe monto real recolectado
+
+**3. Configuración de Costos**
+- Costos por día de semana en base de datos
+- Tarifario: Domingo $5, Lunes-Martes $3, Miércoles-Jueves $3.50, Viernes $4, Sábado $4.50
+- Tooltip informativo en fecha programada
+
+**4. Cálculo de Liquidación**
+- Columna "Liquidación" con indicadores verde/rojo
+- Balance global en header actualizado en tiempo real
+- Fórmulas:
+  - COD: Monto Recolectado - Costo Envío - Comisión (0.01%, máx $25)
+  - No COD: -Costo Envío
+- Columna "Costo de envío" con tarifa del día
 
 ## Esfuerzos Extra
 
-- **Pago contra entrega (COD)**: Toggle en formulario con campo condicional de monto
-- **Badges COD**: Indicador visual en la tabla de órdenes
-- **Liquidación**: Columna con monto de liquidación (verde si positivo, rojo si negativo)
-- **Exportación CSV**: Descarga directa desde la tabla
-- **Layout responsivo**: Sidebar colapsable, tabla adaptativa
-
-## Scripts Disponibles
-
-```bash
-pnpm run dev          # Desarrollo con Turbopack
-pnpm run build        # Build de producción
-pnpm run start        # Ejecutar build de producción
-pnpm run lint         # Linting
-```
-
-## Conexión con Backend
-
-Este frontend se conecta al [boxful-backend](https://github.com/victor0899/boxful-backend). Asegúrate de tener el backend corriendo antes de usar la aplicación.
-
-1. Configurar y ejecutar el backend (ver README del backend)
-2. Ejecutar los seeders del backend (`pnpm run seed`)
-3. Iniciar el frontend (`pnpm run dev`)
-4. Acceder a `http://localhost:3000`
-5. Usar las credenciales de prueba: `test@boxful.com` / `password123`
+- Sistema completo de verificación de email con Resend
+- Master code `000000` para desarrollo
+- Layout split-screen en autenticación
+- Ordenamiento bidireccional en columnas (A-Z, Z-A)
+- Persistencia de filtros al paginar/ordenar
+- Context API para gestión de estado (AuthContext, BalanceContext)
+- Sidebar responsive con drawer en mobile
+- Paleta de colores Boxful completa
+- TypeScript strict mode en todo el proyecto
