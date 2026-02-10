@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useCallback, useRef, useState } from 'react';
-import { Button, Space, DatePicker, Table, Checkbox, App, Tabs, Dropdown } from 'antd';
+import { Button, Space, DatePicker, Table, Checkbox, App, Tabs, Dropdown, Spin } from 'antd';
 import type { TablePaginationConfig, SorterResult } from 'antd/es/table/interface';
-import { CalendarOutlined, ClockCircleOutlined, CheckCircleOutlined, TruckOutlined, DownloadOutlined } from '@ant-design/icons';
+import { CalendarOutlined, ClockCircleOutlined, CheckCircleOutlined, TruckOutlined, DownloadOutlined, FilePdfOutlined } from '@ant-design/icons';
 import { useOrders } from '@/hooks/useOrders';
 import { useBalance } from '@/lib/balance-context';
 import api from '@/lib/api';
@@ -23,6 +23,8 @@ export default function OrdersPage() {
   const [activeTab, setActiveTab] = useState<string>('pending');
   const [sortField, setSortField] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<'ascend' | 'descend' | null>(null);
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
+  const [downloadingOrderId, setDownloadingOrderId] = useState<string | null>(null);
   const initialized = useRef(false);
 
   useEffect(() => {
@@ -198,7 +200,16 @@ export default function OrdersPage() {
   };
 
   const handleDownloadPdf = async (orderId: string) => {
+    // Verificar si ya hay una descarga en progreso
+    if (isDownloadingPdf) {
+      message.warning('Ya hay una descarga en progreso. Por favor espera a que termine.');
+      return;
+    }
+
+    setIsDownloadingPdf(true);
+    setDownloadingOrderId(orderId);
     const hide = message.loading('Generando PDF...', 0);
+
     try {
       const response = await api.get(`/orders/${orderId}/pdf`, {
         responseType: 'blob',
@@ -226,6 +237,9 @@ export default function OrdersPage() {
     } catch {
       hide();
       message.error('Error al abrir el PDF');
+    } finally {
+      setIsDownloadingPdf(false);
+      setDownloadingOrderId(null);
     }
   };
 
@@ -252,14 +266,32 @@ export default function OrdersPage() {
       title: 'No. de orden',
       dataIndex: 'id',
       key: 'id',
-      render: (id: string) => (
-        <a
-          onClick={() => handleDownloadPdf(id)}
-          style={{ color: '#2e49ce', cursor: 'pointer', textDecoration: 'underline' }}
-        >
-          {id.slice(-6).toUpperCase()}
-        </a>
-      ),
+      render: (id: string) => {
+        const isDownloading = downloadingOrderId === id;
+        const isDisabled = isDownloadingPdf && !isDownloading;
+
+        return (
+          <a
+            onClick={() => !isDisabled && handleDownloadPdf(id)}
+            style={{
+              color: isDisabled ? '#d9d9d9' : '#2e49ce',
+              cursor: isDisabled ? 'not-allowed' : 'pointer',
+              textDecoration: 'underline',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              opacity: isDisabled ? 0.5 : 1,
+            }}
+          >
+            {isDownloading ? (
+              <Spin size="small" />
+            ) : (
+              <FilePdfOutlined style={{ fontSize: 16 }} />
+            )}
+            {id.slice(-6).toUpperCase()}
+          </a>
+        );
+      },
     },
     {
       title: 'Nombre',
