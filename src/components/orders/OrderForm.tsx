@@ -16,7 +16,7 @@ import {
   Modal,
   Tooltip,
 } from 'antd';
-import { ArrowRightOutlined, ArrowLeftOutlined, LeftOutlined, PlusOutlined, DeleteOutlined, EditOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import { ArrowRightOutlined, ArrowLeftOutlined, LeftOutlined, PlusOutlined, DeleteOutlined, EditOutlined, InfoCircleOutlined, CalendarOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { State, City } from 'country-state-city';
@@ -244,7 +244,32 @@ export default function OrderForm() {
             <Col xs={24} md={8}>
               <Form.Item
                 name="scheduledDate"
-                label={<span style={{ color: colors.gray[500], fontWeight: 500 }}>Fecha programada</span>}
+                label={
+                  <span style={{ color: colors.gray[500], fontWeight: 500 }}>
+                    Fecha programada{' '}
+                    <Tooltip
+                      title={
+                        <div style={{ padding: 8 }}>
+                          <div style={{ fontWeight: 600, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <CalendarOutlined /> Tarifario por Día
+                          </div>
+                          <div style={{ fontSize: 12 }}>
+                            <div style={{ marginBottom: 4 }}>• Domingo: $5.00</div>
+                            <div style={{ marginBottom: 4 }}>• Lunes: $3.00</div>
+                            <div style={{ marginBottom: 4 }}>• Martes: $3.00</div>
+                            <div style={{ marginBottom: 4 }}>• Miércoles: $3.50</div>
+                            <div style={{ marginBottom: 4 }}>• Jueves: $3.50</div>
+                            <div style={{ marginBottom: 4 }}>• Viernes: $4.00</div>
+                            <div>• Sábado: $4.50</div>
+                          </div>
+                        </div>
+                      }
+                      placement="right"
+                    >
+                      <InfoCircleOutlined style={{ fontSize: 14, color: colors.gray[300], cursor: 'pointer' }} />
+                    </Tooltip>
+                  </span>
+                }
                 required={false}
                 rules={[{ required: true, message: 'Campo requerido' }]}
               >
