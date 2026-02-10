@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useCallback, useRef, useState } from 'react';
-import { Button, Space, DatePicker, Table, Checkbox, App, Tabs, Dropdown, Spin } from 'antd';
+import { Button, Space, DatePicker, Table, Checkbox, App, Tabs, Dropdown, Spin, Tooltip } from 'antd';
 import type { TablePaginationConfig, SorterResult } from 'antd/es/table/interface';
-import { CalendarOutlined, ClockCircleOutlined, CheckCircleOutlined, TruckOutlined, DownloadOutlined, FilePdfOutlined } from '@ant-design/icons';
+import { CalendarOutlined, ClockCircleOutlined, CheckCircleOutlined, TruckOutlined, DownloadOutlined, FilePdfOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { useOrders } from '@/hooks/useOrders';
 import { useBalance } from '@/lib/balance-context';
 import api from '@/lib/api';
@@ -245,10 +245,11 @@ export default function OrdersPage() {
 
   const columns = [
     {
-      title: '',
+      title: 'Seleccionar',
       dataIndex: 'checkbox',
       key: 'checkbox',
-      width: 50,
+      width: 110,
+      align: 'center' as const,
       render: (_: unknown, record: Order) => (
         <Checkbox
           checked={selectedRowKeys.includes(record.id)}
@@ -259,6 +260,7 @@ export default function OrdersPage() {
               setSelectedRowKeys(selectedRowKeys.filter((key) => key !== record.id));
             }
           }}
+          className="order-checkbox"
         />
       ),
     },
@@ -373,14 +375,42 @@ export default function OrdersPage() {
           </Dropdown>
         </Space>
         {activeTab === 'pending' && (
-          <Button
-            onClick={handleSimulateDelivery}
-            loading={simulating}
-            disabled={selectedRowKeys.length === 0}
-            icon={<TruckOutlined />}
-          >
-            Simular entregas ({selectedRowKeys.length})
-          </Button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Button
+              onClick={handleSimulateDelivery}
+              loading={simulating}
+              disabled={selectedRowKeys.length === 0}
+              icon={<TruckOutlined />}
+              style={{
+                backgroundColor: selectedRowKeys.length === 0 ? '#b7eb8f' : '#52c41a',
+                borderColor: selectedRowKeys.length === 0 ? '#b7eb8f' : '#52c41a',
+                color: '#fff',
+              }}
+            >
+              Simular entregas ({selectedRowKeys.length})
+            </Button>
+            <Tooltip
+              title={
+                <div>
+                  <div style={{ marginBottom: 8 }}>
+                    <strong>¿Cómo funciona?</strong>
+                  </div>
+                  <div style={{ marginBottom: 4 }}>
+                    • Selecciona una o más órdenes pendientes
+                  </div>
+                  <div style={{ marginBottom: 4 }}>
+                    • Simula la entrega llamando al webhook del backend
+                  </div>
+                  <div>
+                    • Las órdenes cambiarán a estado "Entregado" y se actualizará el balance
+                  </div>
+                </div>
+              }
+              placement="bottomRight"
+            >
+              <InfoCircleOutlined style={{ fontSize: 16, color: '#52c41a', cursor: 'pointer' }} />
+            </Tooltip>
+          </div>
         )}
       </div>
 

@@ -66,3 +66,14 @@ body {
     margin-top: 2px !important;
   }
 }
+
+/* Order checkbox - darker border for better visibility */
+.order-checkbox .ant-checkbox-inner {
+  border-color: #4e4c4c !important;
+  border-width: 2px !important;
+}
+
+.order-checkbox .ant-checkbox-checked .ant-checkbox-inner {
+  background-color: #73bd28 !important;
+  border-color: #73bd28 !important;
+}
