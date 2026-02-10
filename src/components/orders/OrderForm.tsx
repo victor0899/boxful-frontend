@@ -46,6 +46,8 @@ export default function OrderForm() {
   const [packages, setPackages] = useState<Package[]>([]);
   const [currentPackage, setCurrentPackage] = useState<Partial<Package>>({});
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [editingPackage, setEditingPackage] = useState<Partial<Package>>({});
+  const [packageErrors, setPackageErrors] = useState<Record<string, boolean>>({});
   const [step1Data, setStep1Data] = useState<Record<string, unknown>>({});
   const [selectedDepartment, setSelectedDepartment] = useState<string | null>(null);
   const [phoneDialCode, setPhoneDialCode] = useState<string>('503');
@@ -85,35 +87,53 @@ export default function OrderForm() {
   };
 
   const handleAddPackage = () => {
-    if (
-      !currentPackage.length ||
-      !currentPackage.height ||
-      !currentPackage.width ||
-      !currentPackage.weight ||
-      !currentPackage.description
-    ) {
+    // Validar que el peso sea mayor a 0 si existe
+    if (currentPackage.weight !== undefined && currentPackage.weight <= 0) {
+      setPackageErrors({ ...packageErrors, weight: true });
+      message.error('El peso debe ser mayor a 0');
+      return;
+    }
+
+    // Validar y marcar errores de campos vacíos
+    const errors: Record<string, boolean> = {
+      length: !currentPackage.length || currentPackage.length <= 0,
+      height: !currentPackage.height || currentPackage.height <= 0,
+      width: !currentPackage.width || currentPackage.width <= 0,
+      weight: !currentPackage.weight,
+      description: !currentPackage.description,
+    };
+
+    const hasErrors = Object.values(errors).some(error => error);
+
+    if (hasErrors) {
+      setPackageErrors(errors);
       message.error('Por favor completa todos los campos del producto');
       return;
     }
 
-    if (editingIndex !== null) {
-      // Actualizar paquete existente
-      const updatedPackages = [...packages];
-      updatedPackages[editingIndex] = currentPackage as Package;
-      setPackages(updatedPackages);
-      setEditingIndex(null);
-      message.success('Producto actualizado');
-    } else {
-      // Agregar nuevo paquete
-      setPackages([...packages, currentPackage as Package]);
-    }
-
+    // Agregar nuevo paquete
+    setPackages([...packages, currentPackage as Package]);
     setCurrentPackage({});
+    setPackageErrors({});
   };
 
   const handleEditPackage = (index: number) => {
-    setCurrentPackage(packages[index]);
     setEditingIndex(index);
+    setEditingPackage(packages[index]);
+  };
+
+  const handleSaveEdit = (index: number) => {
+    const updatedPackages = [...packages];
+    updatedPackages[index] = editingPackage as Package;
+    setPackages(updatedPackages);
+    setEditingIndex(null);
+    setEditingPackage({});
+    message.success('Producto actualizado');
+  };
+
+  const handleCancelEdit = () => {
+    setEditingIndex(null);
+    setEditingPackage({});
   };
 
   const handleRemovePackage = (index: number) => {
@@ -518,6 +538,12 @@ export default function OrderForm() {
                   height={currentPackage.height}
                   width={currentPackage.width}
                   onChange={(dimension, value) => setCurrentPackage({ ...currentPackage, [dimension]: value })}
+                  errors={{
+                    length: packageErrors.length,
+                    height: packageErrors.height,
+                    width: packageErrors.width,
+                  }}
+                  onClearError={(dimension) => setPackageErrors({ ...packageErrors, [dimension]: false })}
                 />
               </Col>
               <Col xs={24} md={4}>
@@ -526,11 +552,12 @@ export default function OrderForm() {
                     Peso en libras
                   </Text>
                   <Input
-
+                    status={packageErrors.weight ? 'error' : ''}
                     value={currentPackage.weight}
-                    onChange={(e) =>
-                      setCurrentPackage({ ...currentPackage, weight: parseFloat(e.target.value) || 0 })
-                    }
+                    onChange={(e) => {
+                      setCurrentPackage({ ...currentPackage, weight: parseFloat(e.target.value) || 0 });
+                      setPackageErrors({ ...packageErrors, weight: false });
+                    }}
                   />
                 </div>
               </Col>
@@ -538,29 +565,19 @@ export default function OrderForm() {
                 <div>
                   <Text style={{ fontSize: 12, color: colors.gray[500], fontWeight: 500 }}>Contenido</Text>
                   <Input
-
+                    status={packageErrors.description ? 'error' : ''}
                     value={currentPackage.description}
-                    onChange={(e) => setCurrentPackage({ ...currentPackage, description: e.target.value })}
+                    onChange={(e) => {
+                      setCurrentPackage({ ...currentPackage, description: e.target.value });
+                      setPackageErrors({ ...packageErrors, description: false });
+                    }}
                   />
                 </div>
               </Col>
               <Col xs={24} style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 16, gap: 8 }}>
-                {editingIndex !== null && (
-                  <Button
-                    onClick={() => {
-                      setCurrentPackage({});
-                      setEditingIndex(null);
-                    }}
-                    style={{
-                      color: colors.gray[500],
-                    }}
-                  >
-                    Cancelar
-                  </Button>
-                )}
                 <Button
                   type="default"
-                  icon={editingIndex !== null ? <EditOutlined /> : <PlusOutlined />}
+                  icon={<PlusOutlined />}
                   iconPosition="end"
                   onClick={handleAddPackage}
                   style={{
@@ -570,88 +587,134 @@ export default function OrderForm() {
                     borderColor: '#d9d9d9',
                   }}
                 >
-                  {editingIndex !== null ? 'Actualizar' : 'Agregar'}
+                  Agregar
                 </Button>
               </Col>
             </Row>
           </div>
 
           {/* Added products list */}
-          {packages.map((pkg, index) => (
-            <div
-              key={index}
-              style={{
-                border: `2px solid ${colors.success[500]}`,
-                borderRadius: 16,
-                padding: '24px 32px',
-                marginBottom: 16,
-                backgroundColor: 'transparent',
-              }}
-            >
-              <Row gutter={[16, 16]} align="middle">
-                {/* Peso en libras */}
-                <Col xs={24} sm={12} md={8} lg={8} xl={6}>
-                  <div>
-                    <Text style={{ fontSize: 14, color: colors.gray[500], fontWeight: 500, display: 'block', marginBottom: 8 }}>
-                      Peso en libras
-                    </Text>
-                    <Input value={`${pkg.weight} libras`} readOnly style={{ cursor: 'default' }} />
-                  </div>
-                </Col>
+          {packages.map((pkg, index) => {
+            const isEditing = editingIndex === index;
+            const displayPkg = isEditing ? editingPackage : pkg;
 
-                {/* Contenido */}
-                <Col xs={24} sm={12} md={16} lg={16} xl={10}>
-                  <div>
-                    <Text style={{ fontSize: 14, color: colors.gray[500], fontWeight: 500, display: 'block', marginBottom: 8 }}>
-                      Contenido
-                    </Text>
-                    <Input value={pkg.description} readOnly style={{ cursor: 'default' }} />
-                  </div>
-                </Col>
+            return (
+              <div
+                key={index}
+                style={{
+                  border: `2px solid ${colors.success[500]}`,
+                  borderRadius: 16,
+                  padding: '24px 32px',
+                  marginBottom: 16,
+                  backgroundColor: 'transparent',
+                }}
+              >
+                <Row gutter={[16, 16]} align="middle">
+                  {/* Peso en libras */}
+                  <Col xs={24} sm={12} md={8} lg={8} xl={6}>
+                    <div>
+                      <Text style={{ fontSize: 14, color: colors.gray[500], fontWeight: 500, display: 'block', marginBottom: 8 }}>
+                        Peso en libras
+                      </Text>
+                      {isEditing ? (
+                        <Input
+                          type="number"
+                          value={displayPkg.weight}
+                          onChange={(e) =>
+                            setEditingPackage({ ...editingPackage, weight: parseFloat(e.target.value) || 0 })
+                          }
+                        />
+                      ) : (
+                        <Input value={`${pkg.weight} libras`} readOnly style={{ cursor: 'default' }} />
+                      )}
+                    </div>
+                  </Col>
 
-                {/* Icono de caja - solo visible en pantallas grandes */}
-                <Col xs={0} xl={1} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Image src="/images/box1.svg" alt="Box" width={30} height={30} />
-                </Col>
+                  {/* Contenido */}
+                  <Col xs={24} sm={12} md={16} lg={16} xl={10}>
+                    <div>
+                      <Text style={{ fontSize: 14, color: colors.gray[500], fontWeight: 500, display: 'block', marginBottom: 8 }}>
+                        Contenido
+                      </Text>
+                      {isEditing ? (
+                        <Input
+                          value={displayPkg.description}
+                          onChange={(e) => setEditingPackage({ ...editingPackage, description: e.target.value })}
+                        />
+                      ) : (
+                        <Input value={pkg.description} readOnly style={{ cursor: 'default' }} />
+                      )}
+                    </div>
+                  </Col>
 
-                {/* Dimensiones en modo readonly */}
-                <Col xs={24} sm={16} md={12} lg={12} xl={5}>
-                  <DimensionsInput
-                    length={pkg.length}
-                    height={pkg.height}
-                    width={pkg.width}
-                    readOnly
-                  />
-                </Col>
+                  {/* Icono de caja - solo visible en pantallas grandes */}
+                  <Col xs={0} xl={1} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Image src="/images/box1.svg" alt="Box" width={30} height={30} />
+                  </Col>
 
-                {/* Botones editar y eliminar - siempre a la derecha */}
-                <Col xs={24} style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginLeft: 'auto' }}>
-                  <Button
-                    type="text"
-                    icon={<EditOutlined style={{ fontSize: 20, color: colors.blue[500] }} />}
-                    onClick={() => handleEditPackage(index)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      padding: '8px',
-                    }}
-                  />
-                  <Button
-                    type="text"
-                    icon={<DeleteOutlined style={{ fontSize: 20, color: colors.error[500] }} />}
-                    onClick={() => handleRemovePackage(index)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      padding: '8px',
-                    }}
-                  />
-                </Col>
-              </Row>
-            </div>
-          ))}
+                  {/* Dimensiones */}
+                  <Col xs={24} sm={16} md={12} lg={12} xl={5}>
+                    <DimensionsInput
+                      length={displayPkg.length}
+                      height={displayPkg.height}
+                      width={displayPkg.width}
+                      readOnly={!isEditing}
+                      onChange={
+                        isEditing
+                          ? (dimension, value) =>
+                              setEditingPackage({ ...editingPackage, [dimension]: value })
+                          : undefined
+                      }
+                    />
+                  </Col>
+
+                  {/* Botones - cambian según el modo */}
+                  <Col xs={24} style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginLeft: 'auto' }}>
+                    {isEditing ? (
+                      <>
+                        <Button
+                          onClick={() => handleSaveEdit(index)}
+                          style={{
+                            backgroundColor: colors.success[500],
+                            color: '#fff',
+                            borderColor: colors.success[500],
+                          }}
+                        >
+                          Actualizar
+                        </Button>
+                        <Button onClick={handleCancelEdit}>Cancelar</Button>
+                      </>
+                    ) : (
+                      <>
+                        <Button
+                          type="text"
+                          icon={<EditOutlined style={{ fontSize: 20, color: colors.blue[500] }} />}
+                          onClick={() => handleEditPackage(index)}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            padding: '8px',
+                          }}
+                        />
+                        <Button
+                          type="text"
+                          icon={<DeleteOutlined style={{ fontSize: 20, color: colors.error[500] }} />}
+                          onClick={() => handleRemovePackage(index)}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            padding: '8px',
+                          }}
+                        />
+                      </>
+                    )}
+                  </Col>
+                </Row>
+              </div>
+            );
+          })}
 
           {/* Navigation buttons */}
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 32 }}>
@@ -671,6 +734,7 @@ export default function OrderForm() {
               type="primary"
               size="large"
               loading={loading}
+              disabled={packages.length === 0}
               onClick={handleSubmit}
               style={{ minWidth: 160, height: 48, fontSize: 16 }}
               icon={<ArrowRightOutlined />}
