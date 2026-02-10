@@ -45,12 +45,12 @@ export default function Header({ onMenuClick }: HeaderProps) {
     <AntHeader
       className="main-header"
       style={{
-        background: '#fff',
+        background: 'rgba(255, 255, 255, 0.7)',
         padding: '0 24px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        borderBottom: '1px solid #f0f0f0',
+        borderBottom: `1px solid ${colors.gray[100]}`,
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 16, flex: 1 }}>

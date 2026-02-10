@@ -149,7 +149,7 @@ export default function Sidebar({ drawerOpen, onDrawerClose }: SidebarProps) {
         breakpoint="lg"
         collapsedWidth={0}
         trigger={null}
-        style={{ background: '#f8f9fa' }}
+        style={{ background: '#f8f9fa', borderRight: `1px solid ${colors.gray[100]}` }}
       >
         <MenuContent />
       </Sider>

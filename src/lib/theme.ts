@@ -15,6 +15,7 @@ export const colors = {
     500: '#4e4c4c',
     300: '#b8b7b7',
     100: '#ededed',
+    50: '#f8f9fa',
   },
 
   // Success palette
