@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Form, Input, Button, Typography, Row, Col, Select, DatePicker, App, Modal } from 'antd';
-import { ExclamationCircleOutlined, LeftOutlined } from '@ant-design/icons';
+import { LeftOutlined, DollarOutlined, FrownOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
@@ -92,26 +92,42 @@ export default function RegisterForm() {
     const phoneNumber = `+${whatsappDialCode} ${whatsappNumber}`;
 
     modal.confirm({
-      title: (
-        <span style={{ color: colors.gray[500], fontSize: 24, fontWeight: 600 }}>
-          Confirmar número de teléfono
-        </span>
-      ),
-      icon: (
-        <ExclamationCircleOutlined
-          style={{
-            fontSize: 64,
-            color: '#FFA940',
-            backgroundColor: '#FFF7E6',
-            borderRadius: '50%',
-            padding: 24,
-          }}
-        />
-      ),
+      title: null,
+      icon: null,
+      width: 498,
+      closable: true,
       content: (
-        <Text style={{ fontSize: 16, color: colors.gray[500] }}>
-          Está seguro de que desea continuar con el número <strong>{phoneNumber}</strong>?
-        </Text>
+        <div style={{ textAlign: 'center', padding: '24px 0' }}>
+          {/* Icono centrado */}
+          <div
+            style={{
+              width: 160,
+              height: 160,
+              borderRadius: '50%',
+              backgroundColor: '#FFF7E6',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 32px',
+            }}
+          >
+            <img
+              src="/images/warning.svg"
+              alt="Warning"
+              style={{ width: 90, height: 90 }}
+            />
+          </div>
+
+          {/* Título */}
+          <div style={{ fontSize: 24, color: colors.gray[500], marginBottom: 16, fontWeight: 400 }}>
+            Confirmar número <strong style={{ fontWeight: 600 }}>de teléfono</strong>
+          </div>
+
+          {/* Texto de confirmación */}
+          <Text style={{ fontSize: 16, color: colors.gray[500] }}>
+            Está seguro de que desea continuar con el número <strong>{phoneNumber}</strong>?
+          </Text>
+        </div>
       ),
       okText: 'Aceptar',
       cancelText: 'Cancelar',
@@ -133,10 +149,21 @@ export default function RegisterForm() {
         sendVerificationCode(values.email);
       },
       okButtonProps: {
-        style: { height: 48, fontSize: 16, minWidth: 120 },
+        style: {
+          height: 48,
+          fontSize: 16,
+          minWidth: 120,
+          backgroundColor: colors.blue[500],
+          borderColor: colors.blue[500],
+        },
       },
       cancelButtonProps: {
-        style: { height: 48, fontSize: 16, minWidth: 120 },
+        style: {
+          height: 48,
+          fontSize: 16,
+          minWidth: 120,
+          color: colors.gray[500],
+        },
       },
     });
   };
@@ -322,9 +349,30 @@ export default function RegisterForm() {
           <Title level={3} style={{ color: colors.gray[500], marginBottom: 16 }}>
             Verificar tu email
           </Title>
-          <Text style={{ display: 'block', marginBottom: 32, color: colors.gray[500] }}>
+          <Text style={{ display: 'block', marginBottom: 16, color: colors.gray[500] }}>
             Ingresa el código de 6 dígitos que enviamos a <strong>{pendingFormData?.email}</strong>
           </Text>
+
+          <div
+            style={{
+              backgroundColor: '#FFF7E6',
+              border: '1px solid #FFD591',
+              borderRadius: 8,
+              padding: '12px 16px',
+              marginBottom: 24,
+            }}
+          >
+            <div style={{ textAlign: 'center', marginBottom: 12, display: 'flex', gap: 8, justifyContent: 'center' }}>
+              <DollarOutlined style={{ fontSize: 24, color: '#FFA940' }} />
+              <FrownOutlined style={{ fontSize: 24, color: '#FFA940' }} />
+            </div>
+            <Text style={{ fontSize: 14, color: colors.gray[500], display: 'block', marginBottom: 8 }}>
+              Debido a las limitaciones de Resend (tier gratuito), este código no será enviado a tu correo electrónico.
+            </Text>
+            <Text style={{ fontSize: 14, color: colors.gray[500], display: 'block' }}>
+              Por favor, utiliza el siguiente código: <strong style={{ color: colors.blue[500] }}>000000</strong>.
+            </Text>
+          </div>
 
           <Input
             placeholder="000000"

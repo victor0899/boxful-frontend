@@ -93,21 +93,17 @@ export default function OrdersPage() {
         const backendField = fieldMap[singleSorter.field as string] || (singleSorter.field as string);
         queryParams.sortBy = backendField;
         queryParams.sortOrder = singleSorter.order === 'ascend' ? 'asc' : 'desc';
-
-        console.log('Sorting params:', { sortBy: backendField, sortOrder: queryParams.sortOrder });
       } else {
         setSortField(null);
         setSortOrder(null);
       }
 
-      console.log('Final query params:', queryParams);
       fetchOrders(queryParams);
     },
     [activeTab, fetchOrders],
   );
 
   const handleExport = async (format: 'csv' | 'excel') => {
-    console.log('handleExport called:', { format, selectedRowKeys });
     setExporting(true);
     try {
       const filters: Record<string, unknown> = {};
@@ -115,9 +111,7 @@ export default function OrdersPage() {
       // Si hay órdenes seleccionadas, exportar solo esas (ignorar otros filtros)
       if (selectedRowKeys.length > 0) {
         filters.ids = selectedRowKeys.join(',');
-        console.log('Exporting selected orders:', filters.ids);
       } else {
-        console.log('Exporting all orders with filters');
         // Si no hay selección, usar filtros normales
         const status = activeTab === 'pending'
           ? 'PENDING,IN_TRANSIT,CANCELLED'
