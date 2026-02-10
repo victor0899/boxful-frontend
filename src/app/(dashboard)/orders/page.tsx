@@ -204,6 +204,7 @@ export default function OrdersPage() {
   };
 
   const handleDownloadPdf = async (orderId: string) => {
+    const hide = message.loading('Generando PDF...', 0);
     try {
       const response = await api.get(`/orders/${orderId}/pdf`, {
         responseType: 'blob',
@@ -216,7 +217,11 @@ export default function OrdersPage() {
       setTimeout(() => {
         window.URL.revokeObjectURL(url);
       }, 100);
+
+      hide();
+      message.success('PDF generado correctamente');
     } catch {
+      hide();
       message.error('Error al abrir el PDF');
     }
   };
