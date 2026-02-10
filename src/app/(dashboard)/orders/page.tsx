@@ -422,7 +422,7 @@ export default function OrdersPage() {
                     • Simula la entrega llamando al webhook del backend
                   </div>
                   <div>
-                    • Las órdenes cambiarán a estado "Entregado" y se actualizará el balance
+                    • Las órdenes cambiarán a estado &quot;Entregado&quot; y se actualizará el balance
                   </div>
                 </div>
               }

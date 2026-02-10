@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Form, Input, Button, Typography, Row, Col, Select, DatePicker, App, Modal } from 'antd';
 import { LeftOutlined, DollarOutlined, FrownOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 import dayjs from 'dayjs';
@@ -111,10 +112,11 @@ export default function RegisterForm() {
               margin: '0 auto 32px',
             }}
           >
-            <img
+            <Image
               src="/images/warning.svg"
               alt="Warning"
-              style={{ width: 90, height: 90 }}
+              width={90}
+              height={90}
             />
           </div>
 
